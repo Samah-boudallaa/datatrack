@@ -1,0 +1,863 @@
+<title>KPI Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  --bg:#f1f4f6;--surface:#ffffff;--surface2:#e9eef1;--ink:#0d1a22;--muted:#586a77;--line:#d6dfe5;
+  --accent:#0a6f77;--accent-ink:#ffffff;--accent-soft:#d9eff0;
+  --ok:#1b7f4b;--ok-soft:#dcf2e5;--bad:#b4332b;--bad-soft:#fae3e0;--warn:#8f5a00;--warn-soft:#faecd0;
+  --f-sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0b1216;--surface:#131c22;--surface2:#1a262e;--ink:#e5edf1;--muted:#92a4b0;--line:#25353f;
+  --accent:#4cc3cc;--accent-ink:#04252a;--accent-soft:#11373c;
+  --ok:#55c98a;--ok-soft:#10301f;--bad:#ff8c82;--bad-soft:#3a1916;--warn:#f0b84d;--warn-soft:#33260a;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0b1216;--surface:#131c22;--surface2:#1a262e;--ink:#e5edf1;--muted:#92a4b0;--line:#25353f;
+  --accent:#4cc3cc;--accent-ink:#04252a;--accent-soft:#11373c;
+  --ok:#55c98a;--ok-soft:#10301f;--bad:#ff8c82;--bad-soft:#3a1916;--warn:#f0b84d;--warn-soft:#33260a;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.55 var(--f-sans);margin:0}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:10}
+.wrap{max-width:980px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:14px 64px}
+h1,h2,h3{font-weight:700;line-height:1.2;margin:0;text-wrap:balance;letter-spacing:-.01em}
+h2{font-size:1.4rem}h3{font-size:1.02rem}
+p{margin:0}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.top{display:flex;flex-direction:column;gap:10px;padding-bottom:12px;border-bottom:1px solid var(--line);margin-bottom:22px}
+.brandrow{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
+.mark{flex:none;width:34px;height:34px;border-radius:9px;background:var(--ink);display:grid;place-items:center}
+.mark svg{display:block}
+.brand b{font-size:1.02rem;display:block;line-height:1.2}
+.brand span{color:var(--muted);font-size:.82rem;display:block}
+.nav{display:flex;gap:4px;overflow-x:auto;padding-bottom:2px}
+.nav a{white-space:nowrap;text-decoration:none;color:var(--muted);padding:7px 12px;border-radius:8px;font-weight:500;font-size:.92rem}
+.nav a:hover{background:var(--surface2);color:var(--ink)}
+.nav a.on{background:var(--ink);color:var(--bg)}
+.stack{display:flex;flex-direction:column;gap:16px}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.between{justify-content:space-between}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;min-width:0}
+.muted{color:var(--muted)}.small{font-size:.86rem}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.eyebrow{font-size:.74rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.btn{font:inherit;font-weight:600;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:9px 16px;border-radius:8px;cursor:pointer;text-decoration:none;display:inline-block}
+.btn:hover{border-color:var(--accent)}
+.btn.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.pri:hover{filter:brightness(1.07)}
+.btn.sm{padding:5px 11px;font-size:.85rem}
+.btn.danger{border-color:var(--bad);color:var(--bad)}
+.btn:disabled{opacity:.45;cursor:default}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{font:inherit;font-size:.9rem;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:6px 13px;border-radius:999px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.bar{height:8px;border-radius:99px;background:var(--surface2);overflow:hidden;display:flex}
+.bar i{display:block;height:100%}
+.bar .g{background:var(--ok)}.bar .r{background:var(--bad)}.bar .m{background:var(--warn)}.bar .a{background:var(--accent)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px}
+.kpi{padding:12px 14px;background:var(--surface);border:1px solid var(--line);border-radius:10px}
+.kpi b{display:block;font:600 1.6rem/1.2 var(--f-mono)}
+.kpi span{color:var(--muted);font-size:.82rem}
+.hero{display:flex;gap:22px;align-items:center;flex-wrap:wrap}
+.ring{flex:none;position:relative;width:132px;height:132px}
+.ring svg{display:block}
+.ring .t{position:absolute;inset:0;display:grid;place-content:center;text-align:center}
+.ring .t b{font:600 1.9rem/1 var(--f-mono)}
+.ring .t span{font-size:.72rem;color:var(--muted)}
+.ring .bg{stroke:var(--surface2)}.ring .fg{stroke:var(--accent)}
+.steps{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:6px}
+.sec{display:flex;flex-direction:column;gap:6px}
+.sec h3{color:var(--accent)}
+.sec ul{margin:0;padding-left:1.15em;display:flex;flex-direction:column;gap:4px}
+.trap{background:var(--warn-soft);border-radius:10px;padding:14px 16px}
+.trap h3{color:var(--warn)}
+.trap ul{margin:6px 0 0;padding-left:1.15em;display:flex;flex-direction:column;gap:4px}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.9rem}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:.76rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+code{font-family:var(--f-mono);font-size:.88em;background:var(--surface2);padding:1px 5px;border-radius:4px}
+/* schémas */
+.chain{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.node{background:var(--surface2);border:1px solid var(--line);border-radius:8px;padding:6px 11px;font-weight:600;font-size:.9rem}
+.arr{color:var(--accent);font-weight:700}
+.fun{display:flex;flex-direction:column;gap:7px}
+.fr{display:flex;flex-direction:column;gap:3px}
+.fr .lh{display:flex;justify-content:space-between;gap:10px;font-size:.88rem}
+.fr .vl{font-weight:600}
+.fr .tr{position:relative;height:12px;background:var(--surface2);border-radius:6px;overflow:hidden}
+.fr .tr i{position:absolute;inset:0 auto 0 0;background:var(--accent);border-radius:6px}
+.fr .ls{font:500 .76rem var(--f-mono);color:var(--bad)}
+.fr.worst .tr i{background:var(--bad)}
+/* qcm */
+.qhead{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center}
+.qtext{font-size:1.12rem;font-weight:600;line-height:1.4}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{font:inherit;text-align:left;display:flex;gap:12px;align-items:flex-start;width:100%;background:var(--surface);color:var(--ink);border:1.5px solid var(--line);border-radius:10px;padding:11px 14px;cursor:pointer}
+.opt:hover:not(:disabled){border-color:var(--accent)}
+.opt .l{font:600 .85rem var(--f-mono);flex:none;width:1.7em;height:1.7em;border-radius:6px;background:var(--surface2);display:grid;place-items:center;margin-top:1px}
+.opt.sel{border-color:var(--accent);background:var(--accent-soft)}
+.opt.sel .l{background:var(--accent);color:var(--accent-ink)}
+.opt.ok{border-color:var(--ok);background:var(--ok-soft)}
+.opt.ok .l{background:var(--ok);color:var(--bg)}
+.opt.ko{border-color:var(--bad);background:var(--bad-soft)}
+.opt.ko .l{background:var(--bad);color:var(--bg)}
+.opt:disabled{cursor:default}
+.expl{padding:12px 14px;border-radius:8px;background:var(--surface2)}
+.expl.good{background:var(--ok-soft)}.expl.bad{background:var(--bad-soft)}
+.tag{font-size:.74rem;font-weight:600;padding:2px 8px;border-radius:99px;background:var(--surface2);color:var(--muted)}
+.tag.gen{background:var(--accent-soft);color:var(--accent)}
+.hint{font-size:.8rem;color:var(--muted)}
+kbd{font:500 .78rem var(--f-mono);border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:0 5px;background:var(--surface)}
+.xbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding:8px 0 10px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:8px}
+.timer{font:600 1.3rem var(--f-mono);font-variant-numeric:tabular-nums}
+.timer.low{color:var(--bad)}
+.qnav{display:flex;gap:6px;flex-wrap:wrap}
+.qn{font:600 .8rem var(--f-mono);width:34px;height:34px;border-radius:7px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.qn.done{background:var(--surface2);border-color:var(--muted)}
+.qn.flag{border-color:var(--warn);box-shadow:inset 0 -3px 0 var(--warn)}
+.qn.cur{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.score{font:700 3rem/1 var(--f-mono)}
+.banner{padding:12px 14px;border-radius:8px;background:var(--warn-soft)}
+.empty{padding:28px 16px;text-align:center;color:var(--muted)}
+details.rv{border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+details.rv summary{cursor:pointer;padding:11px 14px;display:flex;gap:10px;align-items:flex-start}
+details.rv .body{padding:0 14px 14px;display:flex;flex-direction:column;gap:8px}
+.dot{flex:none;width:10px;height:10px;border-radius:50%;margin-top:7px}
+.dot.g{background:var(--ok)}.dot.r{background:var(--bad)}.dot.n{background:var(--muted)}
+/* cartes */
+.fcard{min-height:230px;display:flex;flex-direction:column;justify-content:center;gap:12px;text-align:left;width:100%;font:inherit;color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:14px;padding:26px 22px;cursor:pointer}
+.fcard.back{background:var(--accent-soft);border-color:var(--accent)}
+.fcard .q{font-size:1.25rem;font-weight:700;line-height:1.35}
+.fcard .a{font-size:1.02rem;line-height:1.6}
+/* graphique */
+.chart{width:100%;height:auto;display:block}
+.chart .ax{stroke:var(--line);stroke-width:1}
+.chart .tg{stroke:var(--ok);stroke-width:1.5;stroke-dasharray:5 4}
+.chart .ln{stroke:var(--accent);stroke-width:2.5;fill:none;stroke-linejoin:round}
+.chart .pt{fill:var(--accent)}
+.chart text{fill:var(--muted);font:9px var(--f-mono)}
+.chart text.v{fill:var(--ink);font-weight:600}
+.th{display:grid;grid-template-columns:minmax(120px,220px) 1fr auto;gap:10px;align-items:center}
+.th .nm{font-size:.9rem}
+textarea{width:100%;min-height:96px;font:.8rem/1.4 var(--f-mono);background:var(--surface2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:10px;resize:vertical}
+@media (prefers-reduced-motion:no-preference){.bar i{transition:width .4s}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brandrow">
+      <div class="brand">
+        <div class="mark" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 20 20"><rect x="2" y="11" width="4" height="7" rx="1" fill="#4cc3cc"/><rect x="8" y="6" width="4" height="12" rx="1" fill="#4cc3cc"/><rect x="14" y="2" width="4" height="16" rx="1" fill="#4cc3cc"/></svg></div>
+        <div><b>KPI Lab</b><span>Mesure · KPI · entonnoirs</span></div>
+      </div>
+      <button class="btn sm" id="themeBtn" type="button" aria-label="Changer de thème">Thème</button>
+    </div>
+    <nav class="nav" id="nav" aria-label="Sections">
+      <a href="#accueil" data-r="accueil">Tableau de bord</a>
+      <a href="#fiches" data-r="fiches">Fiches</a>
+      <a href="#cartes" data-r="cartes">Cartes</a>
+      <a href="#entrainement" data-r="entrainement">Entraînement</a>
+      <a href="#examen" data-r="examen">Examen blanc</a>
+      <a href="#erreurs" data-r="erreurs">Mes erreurs</a>
+      <a href="#reglages" data-r="reglages">Réglages</a>
+    </nav>
+  </header>
+  <main id="view"></main>
+</div>
+
+<script>
+(function(){
+"use strict";
+const Q=[];
+const q=(ch,t,c,a,b,d,e)=>Q.push({ch:ch,t:t,o:[c,a,b,d],e:e});
+//QSTART
+/* ---------- Séance 1 : Introduction ---------- */
+q(1,"Quelle affirmation distingue correctement Analytics et Analysis ?","L’analytics est une discipline (méthodes + outils) plus large que l’analyse d’un tableau de données","Ce sont deux synonymes exacts","L’analysis est plus large que l’analytics","L’analytics désigne uniquement la collecte des données","Analysis = examen et interprétation. Analytics = discipline + méthodes + outils pour produire des insights qui éclairent les décisions.");
+q(1,"« Le site a enregistré 8 000 visiteurs et 240 achats » correspond à :","Data (données collectées)","Analysis","Analytics","Une décision","Ce sont des faits mesurés : c’est de la donnée brute.");
+q(1,"« Pourquoi les visiteurs abandonnent-ils le site après la page produit ? » relève de :","Analysis (examen et interprétation)","Data","La collecte","L’archivage","Une question qui cherche à comprendre un comportement est une question d’analyse.");
+q(1,"Quelle chaîne relie Data, Analysis, Insight et Decision ?","DATA → ANALYSIS → INSIGHT → DECISION","ANALYSIS → DATA → DECISION → INSIGHT","INSIGHT → DATA → ANALYSIS → DECISION","DECISION → DATA → INSIGHT → ANALYSIS","On part des données, on les analyse, on en tire un insight, puis on décide.");
+q(1,"Quelle est la question centrale du Web Analytics ?","« Que voulons-nous améliorer ? »","« Quel outil installer ? »","« Combien de visiteurs avons-nous ? »","« Quel est le coût du serveur ? »","On commence par l’objectif d’amélioration, pas par l’outil ni par le chiffre.");
+q(1,"Le cycle du Web Analytics est :","Collecter → Mesurer → Analyser → Interpréter → Agir","Mesurer → Collecter → Agir → Analyser → Interpréter","Analyser → Collecter → Mesurer → Agir → Interpréter","Collecter → Analyser → Mesurer → Agir → Interpréter","Le cours donne : COLLECTER, MESURER, ANALYSER, INTERPRÉTER, AGIR.");
+q(1,"Quels sont les quatre axes d’amélioration cités ?","Acquisition, Engagement, Conversion, Expérience utilisateur","Acquisition, Hébergement, Conversion, Design","Trafic, Cookies, Logs, Tags","Visibilité, Coût, Valeur, Rétention","Les quatre axes : Acquisition • Engagement • Conversion • Expérience utilisateur.");
+q(1,"Quel est l’enjeu fondamental du Web Analytics ?","Obtenir des insights significatifs pour maximiser la réussite des investissements digitaux","Produire le maximum de rapports","Collecter le plus de données possible","Remplacer toute décision humaine par un outil","Les 5 enjeux : performance, insights, ROI/succès, décision (éviter de mal interpréter), amélioration.");
+q(1,"Parmi ces éléments, lequel est un canal digital et non une propriété digitale ?","Paid Search","Site Web","Site mobile","Application mobile","Propriétés : site Web, site mobile, application mobile. Canaux : bannières, Paid Search, e-mail, réseaux sociaux.");
+q(1,"Quel domaine d’application désigne les ventes issues de leads en ligne ?","Offline influencé","Concurrence","Enquêtes","Social","Offline influencé = ventes hors ligne issues de leads générés en ligne.");
+q(1,"Quel est l’ordre chronologique de l’évolution du Web Analytics ?","Logs → Page tagging → Event tracking (Web 2.0) → Digital analytics","Page tagging → Logs → Digital analytics → Event tracking","Digital analytics → Logs → Page tagging → Event tracking","Event tracking → Logs → Digital analytics → Page tagging","1993–98 logs ; 1999–2004 page tagging ; 2005–09 croissance/événements ; 2010+ digital analytics.");
+q(1,"Pourquoi le nombre de hits n’est-il pas le nombre de visiteurs (logs) ?","Une page peut générer plusieurs requêtes ; robots et caches faussent aussi la précision","Un hit correspond toujours à un visiteur mais il est compté deux fois","Les logs ne sont pas enregistrés par le serveur","Les hits ne comptent que les achats","Une seule page déclenche plusieurs requêtes (HTML, images, CSS, JS…).");
+q(1,"Le page tagging repose sur :","JavaScript + cookies","Uniquement les fichiers de logs","Des enquêtes papier","Un pare-feu réseau","Le page tagging (1999–2004) mesure pages, visiteurs et comportements via JavaScript et cookies.");
+q(1,"L’event tracking, apparu avec le Web 2.0, permet de mesurer :","Clics, vidéos et interactions (contenu dynamique)","Seulement les pages vues","Uniquement les erreurs 404","Seulement les adresses IP","L’objectif évolue : ne plus seulement compter les pages, mais observer les interactions.");
+q(1,"Pourquoi parle-t-on de « digital analytics » ?","Le périmètre dépasse le seul Web : mobile, social, campagnes, enquêtes","Le Web a disparu","C’est un autre nom pour les logs","Il ne mesure que les applications mobiles","Le terme reflète l’élargissement du périmètre au-delà du seul Web.");
+q(1,"70 % de visiteurs mobiles avec une conversion mobile faible : quelle suite logique ?","Un problème UX est possible : optimiser puis remesurer","Supprimer la version mobile","Conclure que le mobile est inutile","Augmenter le budget sans analyse","Données → analyse → insight (problème UX possible) → décision : optimiser puis remesurer.");
+q(1,"Entonnoir 1 000 visiteurs → 600 produits consultés → 200 paniers → 100 paiements → 50 achats. Où la perte relative est-elle la plus forte ?","Produit consulté → Panier (−66,7 %)","Visiteurs → Produit consulté (−40 %)","Panier → Paiement (−50 %)","Paiement → Achat (−50 %)","(600 − 200) ÷ 600 = 66,7 %. Les autres pertes : 40 %, 50 %, 50 %.");
+q(1,"Quel enchaînement formalise une démarche d’analyse ?","Constat → Question → Hypothèse → Action → Nouvelle mesure","Hypothèse → Constat → Action → Question → Nouvelle mesure","Action → Constat → Hypothèse → Nouvelle mesure → Question","Question → Action → Constat → Hypothèse → Nouvelle mesure","On observe, on questionne, on formule une hypothèse, on agit, puis on mesure à nouveau.");
+q(1,"Un site reçoit 10 000 visiteurs par mois. Peut-on dire qu’il fonctionne bien ?","Non : un chiffre seul ne suffit pas, il faut d’autres données et une analyse","Oui, le trafic est élevé","Non, c’est forcément trop peu","Oui si le nombre de pages est grand","Il faut savoir : nouveaux/récurrents, pages, origine, appareil, conversions, sorties.");
+q(1,"Quel est l’ordre des couches de l’écosystème de la mesure digitale ?","Utilisateurs → Points de contact → Collecte & données → Outils d’analyse & reporting → Insights & décisions","Outils d’analyse → Utilisateurs → Décisions → Collecte → Points de contact","Collecte → Utilisateurs → Rapports → Points de contact → Décisions","Insights → Décisions → Collecte → Utilisateurs → Outils","La mesure digitale relie utilisateurs, points de contact, données, plateformes et décisions.");
+
+/* ---------- Séance 2 : Collecte ---------- */
+q(2,"Quelle phrase distingue correctement collecter, traiter et analyser ?","Collecter = recevoir les données ; traiter = les organiser ; analyser = les interpréter","Collecter = interpréter ; traiter = recevoir ; analyser = organiser","Ce sont trois mots pour la même étape","Traiter = recevoir ; collecter = organiser ; analyser = supprimer","La collecte n’est qu’une étape du processus.");
+q(2,"Quel est l’ordre de la chaîne de l’interaction au rapport ?","Utilisateur → Page/interaction → Mécanisme de collecte → Traitement → Rapport","Utilisateur → Rapport → Collecte → Traitement","Mécanisme → Utilisateur → Rapport → Traitement","Traitement → Collecte → Interaction → Rapport","Architecture à mémoriser : Interaction → Collecte → Traitement → Rapport.");
+q(2,"Un log serveur est :","Un fichier journal où le serveur enregistre les requêtes reçues","Un script JavaScript dans la page","Une petite donnée stockée dans le navigateur","Une image invisible de suivi","Navigateur → requête HTTP → serveur Web → fichier LOG.");
+q(2,"Dans la ligne « 192.0.2.15 [12/10/2026 14:02] GET /produits 200 », que signifie 200 ?","Code de réponse HTTP : requête traitée avec succès","Le nombre de visiteurs","La durée de la visite en secondes","Le numéro de la page","200 = succès. Le reste : IP, date/heure, méthode HTTP et ressource.");
+q(2,"Un code 404 dans les logs signifie :","Ressource non trouvée","Requête réussie","Erreur interne du serveur","Redirection permanente","Les logs permettent de repérer des erreurs HTTP comme le 404.");
+q(2,"Chargement d’une page produit : 1 HTML + 2 images + 1 CSS + 1 JavaScript + 1 police. Combien de requêtes possibles ?","6","1","5","7","1 + 2 + 1 + 1 + 1 = 6. D’où : hits ≠ visiteurs.");
+q(2,"Une page contient 1 HTML, 3 images, 1 CSS et 2 fichiers JavaScript. Elle génère jusqu’à :","7 requêtes","6 requêtes","3 requêtes","1 requête","1 + 3 + 1 + 2 = 7 requêtes possibles pour une seule page.");
+q(2,"Pourquoi un log ne mesure-t-il pas automatiquement un clic sur « Ajouter au panier » sans rechargement ?","Ce clic ne déclenche pas forcément de nouvelle requête serveur","Le serveur ignore le HTML","Les clics sont interdits par HTTP","Les logs ne contiennent que des images","Les logs observent les requêtes, pas les actions dans une page déjà chargée.");
+q(2,"Quelle limite des logs est liée au cache ?","Le cache peut éviter certaines requêtes au serveur","Le cache supprime le fichier de logs","Le cache ajoute des cookies","Le cache bloque JavaScript","Robots, cache et hits multiples imposent une interprétation prudente.");
+q(2,"Un tag (page tagging) est :","Un petit fragment de code, souvent JavaScript, intégré à la page pour déclencher la collecte","Un fichier journal du serveur","Une donnée texte stockée par le navigateur","Une image distante de 1 pixel","Le tag s’exécute dans le navigateur et rassemble les données disponibles.");
+q(2,"Si une page ne contient pas le tag :","Ses consultations et actions risquent de ne pas être collectées","Elles sont collectées via le cookie","Le serveur crée automatiquement le tag","Rien ne change","Il faut vérifier l’installation du tag sur toutes les pages à mesurer.");
+q(2,"Quel est l’ordre des étapes du page tagging ?","Requête de page → Réponse du serveur → Exécution du tag → Envoi des données → Traitement","Exécution du tag → Requête de page → Envoi → Réponse → Traitement","Réponse du serveur → Requête de page → Traitement → Exécution du tag → Envoi","Envoi → Exécution → Requête → Traitement → Réponse","Le traitement vient en dernier : il peut donc y avoir un délai avant l’apparition dans le tableau de bord.");
+q(2,"Quel événement mesure un clic sur « Ajouter au panier » ?","add_to_cart","page_view","session_start","first_visit","page_view mesure l’ouverture d’une page ; add_to_cart une interaction précise.");
+q(2,"Que mesure l’événement page_view ?","L’ouverture ou la consultation d’une page","Un clic sur un bouton","Un achat","Un téléchargement","Page view = page consultée. Event tracking = interaction particulière (clic, téléchargement, achat).");
+q(2,"Un cookie est :","Une petite donnée textuelle stockée dans le navigateur, pas un programme","Un programme exécutable","Un virus","Un fichier journal du serveur","Il peut mémoriser des préférences ou un identifiant technique (ex. identifiant = A123).");
+q(2,"Un identifiant de cookie correspond généralement à :","Un navigateur ou contexte technique, pas nécessairement une personne unique","L’identité réelle de la personne","Une personne identifiée sur tous ses appareils","L’adresse postale de l’utilisateur","Si l’utilisateur supprime le cookie, change de navigateur ou d’appareil, les visites peuvent ne pas être reliées.");
+q(2,"Cookie de session et cookie persistant se distinguent par :","La durée de conservation","Le domaine qui dépose le cookie","La taille du cookie","Le navigateur utilisé","Session = temporaire. Persistant = date d’expiration.");
+q(2,"Cookie first-party et third-party se distinguent par :","Le domaine associé au cookie par rapport au site visité","La durée de conservation","Le type de navigateur","Le nombre de pages vues","Deux questions séparées : combien de temps ? quel domaine ?");
+q(2,"Quelle catégorie de cookies est davantage soumise aux restrictions des navigateurs ?","Third-party","First-party","Session uniquement","Aucune","Les cookies tiers sont davantage concernés par les restrictions et les enjeux de confidentialité.");
+q(2,"Un cookie persistant :","Possède une date d’expiration et peut rester après la fermeture du navigateur","Est toujours supprimé à la fermeture","N’existe que côté serveur","Ne peut pas servir à reconnaître un navigateur","Il peut aider à reconnaître le même navigateur lors d’une prochaine visite.");
+q(2,"Un pixel de suivi déclenche principalement :","Une requête vers un serveur lorsque la ressource est chargée","L’exécution d’un long script","La suppression des cookies","L’écriture dans le fichier de logs du navigateur","Si la ressource est bloquée ou ne se charge pas, l’événement attendu peut ne pas être enregistré.");
+q(2,"Quel mécanisme permet de reconnaître le même navigateur lors d’une visite ultérieure ?","Cookie","Logs serveur","Pixel / beacon","Code HTTP 200","Le navigateur renvoie le cookie lors d’une requête ultérieure.");
+q(2,"Quel mécanisme mesure un clic sans rechargement de page ?","Tag / event tracking (événement configuré)","Logs serveur seuls","Cookie seul","Code HTTP 404","Le clic doit être prévu et correctement configuré comme événement.");
+q(2,"Parmi ces propositions, laquelle ne rend PAS la collecte incomplète ?","Un grand nombre de visiteurs réels","Un tag absent sur une page","JavaScript bloqué","Des cookies supprimés","Causes : tag absent, JavaScript bloqué, cookies supprimés, robots/cache, choix de confidentialité.");
+q(2,"Le cookie est-il indispensable à tous les mécanismes de collecte ?","Non : il peut contribuer à identifier un navigateur mais n’est pas indispensable à tous","Oui, sans cookie aucune donnée n’est collectée","Oui pour les logs","Oui pour le pixel uniquement","Les logs enregistrent des requêtes sans cookie ; un tag peut envoyer un événement sans identifiant.");
+q(2,"Pourquoi un événement peut-il apparaître avec délai dans le tableau de bord ?","Le traitement organise les données brutes après leur collecte","Le navigateur attend sa fermeture","Les cookies expirent","Le pixel est trop petit","Collecte (réception) puis traitement (organisation) puis rapport.");
+q(2,"Quelle affirmation est vraie ?","Le nombre de hits n’est pas le nombre de visiteurs","Chaque hit est un visiteur unique","Les robots n’apparaissent jamais dans les logs","Un hit = une page vue = un visiteur","Vrai/faux du cours : « Chaque hit représente un visiteur unique » est faux.");
+q(2,"Quel est l’intérêt principal des logs serveur ?","Le diagnostic technique du site (requêtes, erreurs HTTP)","Mesurer finement les clics côté navigateur","Identifier chaque personne","Remplacer les tags","Les logs sont utiles pour le diagnostic technique, moins adaptés aux interactions côté navigateur.");
+
+/* ---------- Séance 3 : KPI ---------- */
+q(3,"« 210 inscriptions », « taux de conversion en inscription » et « 25 % » sont respectivement :","Métrique, KPI, cible","KPI, cible, métrique","Cible, métrique, KPI","Métrique, cible, KPI","Métrique = mesure chiffrée. KPI = métrique retenue pour suivre un objectif. Cible = niveau à atteindre.");
+q(3,"Quelle est la formule du CTR ?","Clics ÷ impressions × 100","Clics ÷ sessions × 100","Impressions ÷ clics × 100","Dépense ÷ clics","Le dénominateur du CTR est les impressions, pas les sessions.");
+q(3,"1 200 clics pour 20 000 impressions : quel est le CTR ?","6 %","60 %","16,7 %","0,6 %","1 200 ÷ 20 000 = 0,06 → 6 %.");
+q(3,"Dépense de 3 600 DH pour 1 200 clics : quel est le CPC ?","3 DH","0,33 DH","30 DH","6 DH","CPC = dépense ÷ clics = 3 600 ÷ 1 200 = 3 DH.");
+q(3,"210 inscriptions terminées pour 960 sessions : quel est le taux de conversion ?","21,9 %","17,5 %","25 %","80 %","210 ÷ 960 × 100 ≈ 21,9 %. (17,5 % = 210 ÷ 1 200, mauvais dénominateur.)");
+q(3,"300 sessions ont commencé le formulaire, 210 l’ont terminé : taux d’abandon ?","30 %","70 %","21,9 %","42,9 %","(300 − 210) ÷ 300 × 100 = 30 %. Le dénominateur est le nombre de débuts.");
+q(3,"3 600 DH dépensés, 210 inscriptions : coût par inscription ?","17,14 DH","3 DH","12 DH","20 DH","3 600 ÷ 210 ≈ 17,14 DH. Cible du cours : ≤ 20 DH → atteinte.");
+q(3,"960 sessions pour 1 200 clics : taux clic → session ?","80 %","20 %","21,9 %","6 %","960 ÷ 1 200 = 80 %. 20 % des clics n’ont pas correspondu à une session mesurée.");
+q(3,"200 sessions dont 70 sans engagement : taux de rebond ?","35 %","65 %","70 %","3,5 %","70 ÷ 200 × 100 = 35 %.");
+q(3,"Une session est engagée si elle :","Dure plus de 10 s, OU déclenche un événement clé, OU contient au moins 2 pages vues","Dure plus de 60 s ET contient 5 pages vues","Se termine obligatoirement par un achat","Provient d’un canal payant","Un seul des trois critères suffit (définition du cours).");
+q(3,"Un taux de rebond élevé est :","Un signal à examiner, pas une preuve de problème","La preuve que le site est mauvais","Toujours bon signe","Sans intérêt","Une page peut répondre immédiatement au besoin : il faut analyser contexte, page et source.");
+q(3,"Entonnoir 960 → 480 → 300 → 210 sessions. Où la perte relative est-elle la plus forte ?","960 → 480 (−50 %)","480 → 300 (−37,5 %)","300 → 210 (−30 %)","Les trois sont identiques","Entre la page d’arrivée et l’ouverture du formulaire.");
+q(3,"Quelle est la perte relative entre 480 et 300 sessions ?","−37,5 %","−62,5 %","−30 %","−60 %","(480 − 300) ÷ 480 = 0,375.");
+q(3,"Recherche payante : 150 inscriptions pour 600 sessions. Réseaux sociaux : 60 pour 360. Quelle source convertit le mieux ?","Recherche payante (25 % contre 16,7 %)","Réseaux sociaux (25 % contre 16,7 %)","Égalité","Impossible à calculer","150 ÷ 600 = 25 % ; 60 ÷ 360 = 16,7 %. Total : 21,9 %.");
+q(3,"Quel est le dénominateur du CTR ?","Les impressions","Les sessions","Les clics","La dépense","CTR = clics ÷ impressions.");
+q(3,"Un CTR élevé prouve-t-il que la campagne génère beaucoup d’inscriptions ?","Non : un clic ne garantit pas une inscription","Oui, toujours","Oui si le CPC est faible","Oui si le rebond est nul","Faux dans le vrai/faux du cours.");
+q(3,"Un KPI est-il nécessairement un taux exprimé en pourcentage ?","Non : il peut être un volume, une durée, un coût ou un taux","Oui, toujours","Oui, sauf pour les coûts","Oui, sauf pour les volumes","Faux dans le vrai/faux du cours.");
+q(3,"Un taux d’abandon de 30 % indique :","Un point à investiguer, pas automatiquement sa cause","Que le formulaire est trop long","Que la campagne est mauvaise","Que les cookies sont supprimés","Constat (30 %) → hypothèse → action à tester → nouvelle mesure.");
+q(3,"Quels éléments définissent un KPI interprétable ?","Objectif, formule, périmètre, période, cible","Logo, couleur, titre, police, date","Serveur, cookie, tag, pixel, log","Impressions, clics, sessions, ventes, coût","Un KPI sans dénominateur ou sans période est ambigu.");
+q(3,"Quel objectif est mesurable ?","Atteindre 25 % de conversion des sessions en inscriptions le mois prochain","Améliorer le site","Obtenir davantage de trafic","Avoir un beau site","Objectif → question de mesure → indicateur → cible → période.");
+q(3,"CTR 6 % (cible ≥ 5 %), CPC 3 DH (≤ 4), conversion 21,9 % (≥ 25 %), coût/inscription 17,14 DH (≤ 20). Décision prioritaire ?","Examiner la conversion avant d’augmenter le budget","Augmenter le budget immédiatement","Changer l’annonce car le CTR est trop bas","Réduire le CPC","Seul le taux de conversion est sous la cible.");
+q(3,"Recherche payante : 360 DH pour 30 inscriptions. Réseaux sociaux : 270 DH pour 27. Si la priorité est le coût par inscription :","Réseaux sociaux (10 DH contre 12 DH)","Recherche payante (10 DH contre 12 DH)","Aucune différence","Les deux à 11 DH","360 ÷ 30 = 12 DH ; 270 ÷ 27 = 10 DH.");
+q(3,"3 utilisateurs peuvent générer 5 sessions et 14 pages vues. Quelle relation est correcte ?","Un utilisateur peut avoir plusieurs sessions, une session plusieurs pages vues","Un utilisateur = une session = une page vue","Une page vue contient plusieurs sessions","Une session contient plusieurs utilisateurs","Utilisateur, session et page vue sont trois réalités différentes.");
+q(3,"Quel KPI répond à « Le formulaire décourage-t-il des personnes qui l’ont commencé ? »","Taux d’abandon du formulaire","CTR","CPC","Taux de rebond","On choisit le KPI à partir de la question, pas de la formule.");
+q(3,"Recherche payante : 144 clics / 2 400 impressions. Réseaux sociaux : 210 / 6 000. CTR respectifs ?","6 % et 3,5 %","3,5 % et 6 %","6 % et 6 %","60 % et 35 %","144 ÷ 2 400 = 6 % ; 210 ÷ 6 000 = 3,5 %.");
+q(3,"CPC des réseaux sociaux : 270 DH pour 210 clics ≈","1,29 DH","0,78 DH","10 DH","2,50 DH","270 ÷ 210 ≈ 1,29 DH. (Recherche : 360 ÷ 144 = 2,50 DH.)");
+q(3,"Conversion : recherche payante 30 inscriptions / 120 sessions ; réseaux sociaux 27 / 180. Résultats ?","25 % et 15 %","15 % et 25 %","20 % et 20 %","30 % et 27 %","30 ÷ 120 = 25 % ; 27 ÷ 180 = 15 %.");
+q(3,"Avant d’élargir le budget, il faut :","Comparer la qualité des inscriptions, la période et le volume disponible","Choisir le meilleur chiffre unique","Ignorer le coût","Supprimer le tag","La décision doit être justifiée par un objectif et des preuves, pas par un seul chiffre.");
+
+/* ---------- Séance 4 : Outils (GA4) ---------- */
+q(4,"Quel est le rôle de GA4 dans la chaîne de mesure ?","Il reçoit, organise et restitue en rapports les événements envoyés par la balise","Il est le mécanisme de collecte lui-même","Il remplace le serveur du site","Il crée uniquement des cookies tiers","La balise (Google tag / GTM) envoie ; GA4 reçoit, organise et restitue.");
+q(4,"L’ID de mesure d’un flux Web GA4 commence par :","G-","UA-","AW-","GTM-","Exemple : G-XXXXXXXXXX.");
+q(4,"Quelle est la hiérarchie correcte dans Google Analytics ?","Compte → Propriété GA4 → Flux de données Web","Flux → Compte → Propriété","Propriété → Compte → Flux","Compte → Flux → Balise → Propriété","Le flux Web relie la propriété au site à mesurer.");
+q(4,"Les données du TP1 (Flask, events.csv) sont-elles envoyées automatiquement à GA4 ?","Non : elles restent dans l’application locale","Oui, toujours","Oui, via un cookie","Oui, via access_log.csv","Même logique (événement détecté puis envoyé), mais destination différente.");
+q(4,"Dans quelle rubrique configure-t-on comptes, propriétés, flux et accès ?","Administration","Rapports","Explorer","Publicité","Accueil = résumé ; Rapports = acquisition, engagement… ; Explorer = analyses ; Publicité = attribution.");
+q(4,"Quelle rubrique propose des analyses personnalisées plus approfondies ?","Explorer","Accueil","Administration","Rapports en temps réel","Explorer : exploration de l’entonnoir, du chemin, exploration libre.");
+q(4,"L’acquisition d’utilisateurs répond à la question :","Par quel canal l’utilisateur a-t-il découvert le site la première fois ?","Par quel canal cette session précise est-elle arrivée ?","Quelles pages sont consultées ?","Quel appareil est utilisé ?","À ne pas confondre avec l’acquisition de trafic (par session).");
+q(4,"L’acquisition de trafic répond à la question :","Par quel canal cette session précise est-elle arrivée ?","Par quel canal l’utilisateur a-t-il découvert le site la première fois ?","Combien d’achats ont eu lieu ?","Quels navigateurs sont utilisés ?","Dimension typique : groupe de canaux principal de la session.");
+q(4,"Le canal « Direct » regroupe :","Les accès directs ou de source non identifiée","Les résultats naturels des moteurs","Les annonces payantes sur moteurs","Les réseaux sociaux","Organic Search = résultats naturels ; Paid Search = annonces payantes.");
+q(4,"Dans la démo, quel canal a le plus de sessions et quel est son taux d’engagement ?","Direct : 71 051 sessions, 27,89 %","Organic Search : 71 051 sessions, 71,98 %","Paid Search : 71 051 sessions, 52 %","Referral : 71 051 sessions, 73,52 %","Direct = 51,47 % des sessions mais engagement faible.");
+q(4,"Parmi Direct, Organic Search et Paid Search, quel canal a le meilleur taux d’engagement ?","Organic Search (71,98 %)","Direct (27,89 %)","Paid Search (52 %)","Égalité","Volume de trafic ≠ niveau d’engagement.");
+q(4,"Direct est-il le « meilleur » canal ?","Non : volume ≠ engagement, et l’engagement ne prouve pas à lui seul la qualité commerciale","Oui, car il a le plus de sessions","Oui, car son taux est le plus élevé","Oui, car la source est inconnue","Interprétation prudente exigée par le cours.");
+q(4,"Dans la démo, quelle page est la plus vue et laquelle a la plus longue durée d’engagement parmi celles citées ?","« / » (102 233 vues) ; /checkout (1 min 51 s)","/checkout (vues) ; « / » (durée)","/shop/new (vues) ; « / » (durée)","« / » (vues) ; /shop/clearance (durée)","L’accueil : 102 233 vues, 8 s. /checkout : 15 493 vues, 1 min 51 s.");
+q(4,"Pourquoi 1 395 événements purchase peuvent-ils correspondre à 1 267 utilisateurs ?","Un même utilisateur peut déclencher plusieurs achats","GA4 se trompe","Certains achats n’ont pas d’utilisateur","Les robots achètent","Événements ≠ utilisateurs : 1,1 événement par utilisateur.");
+q(4,"Quelle est la différence entre événement et événement clé ?","L’événement est une interaction enregistrée ; l’événement clé est celui jugé important pour l’activité (ex-« conversion »)","Ils sont identiques","L’événement clé est une page vue","L’événement clé est un cookie","Le choix dépend de l’objectif et de la configuration de la propriété.");
+q(4,"Quel événement GA4 indique qu’une nouvelle session a commencé ?","session_start","first_visit","page_view","purchase","first_visit = première visite reconnue par GA4.");
+q(4,"Funnel GA4 : add_to_cart 14 921 → view_cart 6 746 → begin_checkout 4 180 → add_shipping_info 4 134 → add_payment_info 2 827 → purchase 1 395. Plus forte perte relative entre deux étapes consécutives ?","add_to_cart → view_cart (≈ −55 %)","view_cart → begin_checkout (≈ −38 %)","begin_checkout → add_shipping_info (≈ −1 %)","add_payment_info → purchase (≈ −51 %)","6 746 ÷ 14 921 ≈ 0,45 → −55 %. Deuxième perte : add_payment_info → purchase (−51 %).");
+q(4,"Quel outil GA4 sert à repérer où les utilisateurs abandonnent un parcours ?","Exploration de l’entonnoir","Rapport Temps réel","Administration","Acquisition d’utilisateurs","Exploration du chemin = pages avant/après une étape ; libre = croiser dimensions et métriques.");
+q(4,"Le rapport Temps réel sert surtout à :","Vérifier qu’un événement est reçu et observer l’activité récente (vue partielle)","Analyser un trimestre complet","Configurer les flux","Calculer le ROI","Il ne remplace pas les rapports détaillés.");
+q(4,"Quel est l’ordre pour connecter son propre site à GA4 ?","Créer la propriété → créer le flux Web → installer la balise → vérifier la collecte → configurer les événements","Installer la balise → créer la propriété → configurer les événements → créer le flux","Configurer les événements → installer la balise → créer le flux → créer la propriété","Vérifier la collecte → créer la propriété → installer la balise → créer le flux","Le compte de démonstration sert à apprendre ; un autre site exige sa propre configuration.");
+q(4,"Pourquoi ne faut-il pas installer deux fois la même balise ?","Les doublons peuvent fausser les vues et les événements","GA4 se bloque","Le cookie expire","Le flux est supprimé","Méthodes d’installation : CMS, Google Tag Manager, code manuel (gtag.js).");
+q(4,"Quels outils permettent de vérifier la collecte ?","Temps réel, DebugView et Tag Assistant","Explorer et Publicité","Data API runReport","Measurement Protocol","Étape 4 de la mise en place sur un autre site.");
+q(4,"La Data API (runReport) sert à :","Récupérer des résultats de rapports par programme ; elle ne remplace pas la collecte","Collecter les clics du site","Installer la balise","Créer le flux Web","Utile pour automatiser des rapports ou alimenter un tableau de bord.");
+q(4,"Le Measurement Protocol permet de :","Envoyer des événements serveur à serveur, en complément du suivi navigateur","Interroger les rapports","Installer gtag.js","Gérer les accès","Méthode plus avancée ; elle complète le suivi côté navigateur.");
+q(4,"Comment définir le KPI de conversion dans GA4 ?","Sessions contenant registration_complete ÷ sessions × 100 ; l’objectif de l’organisation détermine KPI et cible","Nombre de page_view ÷ utilisateurs","GA4 impose automatiquement le KPI","Nombre d’événements ÷ impressions","GA4 fournit données et métriques ; c’est l’objectif qui fixe le KPI.");
+q(4,"Que permet le compte de démonstration (Google Merchandise Store) ?","Explorer les rapports en lecture, sans configurer les données du site","Installer une balise sur son site","Modifier les flux de données","Créer des propriétés","Limite pédagogique : on explore, on ne configure pas.");
+
+/* ---------- Questions ajoutées (v2) ---------- */
+q(1,"Laquelle de ces affirmations est FAUSSE ?","Analytics et Analysis sont deux termes strictement synonymes","L’analytics est plus large que la simple analyse d’un tableau de données","Une donnée n’est utile que si elle permet de répondre à une question ou à un objectif","Un chiffre seul ne suffit pas pour évaluer la performance d’un site","Le cours insiste : Analytics ≠ Analysis. L’analytics est une discipline (méthodes + outils) ; l’analysis est l’examen et l’interprétation.");
+q(1,"Dans l’exemple mobile, quelle séquence correspond à la démarche du cours ?","70 % de visiteurs mobiles → conversion mobile faible → problème UX possible → optimiser puis remesurer","Conversion mobile faible → 70 % de visiteurs mobiles → optimiser → problème UX possible","Optimiser → conversion mobile faible → 70 % de visiteurs mobiles → problème UX possible","Problème UX possible → optimiser → 70 % de visiteurs mobiles → conversion mobile faible","Données → analyse → insight → décision → action : on constate, on interprète, puis on agit et on remesure.");
+q(1,"Les données « recherche, direct, social, campagnes » relèvent de quelle catégorie de données analysables ?","Acquisition","Navigation","Technologie","Conversion","Utilisateurs (nouveaux, récurrents) • Navigation (pages, parcours, interactions) • Technologie (mobile, ordinateur, navigateur) • Acquisition (recherche, direct, social, campagnes) • Conversion (achat, inscription, téléchargement).");
+q(1,"« Achat, inscription, téléchargement » sont des données de :","Conversion","Acquisition","Technologie","Navigation","Utilisateurs • Navigation • Technologie • Acquisition • Conversion : les cinq types de données analysables du cours.");
+q(1,"« Mobile, ordinateur, navigateur » sont des données de :","Technologie","Utilisateurs","Conversion","Acquisition","Utilisateurs • Navigation • Technologie • Acquisition • Conversion : les cinq types de données analysables du cours.");
+q(1,"Quel est le message clé de la séance 1 ?","Le Web Analytics consiste à transformer les chiffres en informations utiles, pas seulement à les produire","Il faut collecter le plus de chiffres possible","Un bon tableau de bord remplace l’analyse","Seul le trafic compte pour juger un site","Message clé du cours : le Web Analytics ne consiste pas seulement à produire des chiffres ; il consiste à les transformer en informations utiles.");
+q(1,"« Même utilisateur • plusieurs canaux • plusieurs interactions » illustre :","Les points de contact digitaux de l’écosystème de mesure","Le cycle des logs","Le page tagging uniquement","Les enquêtes déclaratives","La mesure digitale relie le même utilisateur à plusieurs points de contact : Web, mobile, campagnes, social.");
+q(1,"Laquelle n’est PAS une raison citée pour analyser les données Web ?","Remplacer l’équipe de développement du site","Comprendre les utilisateurs","Identifier les problèmes","Optimiser les conversions","Raisons du cours : comprendre les utilisateurs, mesurer les performances, identifier les problèmes, évaluer les campagnes, améliorer l’expérience, optimiser les conversions, décider à partir des données.");
+q(1,"Pourquoi les logs posaient-ils des problèmes de précision ?","Les robots, spiders et caches faussaient le comptage","Ils ne contenaient jamais de dates","Ils étaient toujours chiffrés","Ils ne s’appliquaient qu’aux applications mobiles","Le cours cite les robots, spiders et caches. S’ajoute le fait qu’une page génère plusieurs hits.");
+
+q(2,"Laquelle de ces affirmations est FAUSSE ?","Un cookie est un petit programme qui s’exécute dans le navigateur","Un tag est un fragment de code souvent écrit en JavaScript","Un log enregistre les requêtes reçues par le serveur","Un pixel peut déclencher une requête lorsqu’il est chargé","Le cookie est une petite donnée textuelle, pas un programme.");
+q(2,"Un cookie de session peut-il être aussi un cookie first-party ?","Oui : durée de conservation et domaine sont deux critères indépendants","Non : un cookie de session est toujours third-party","Non : seuls les cookies persistants peuvent être first-party","Oui, mais seulement s’il est supprimé à la fermeture du site","Session/persistant = durée de conservation. First-party/third-party = domaine. Les deux critères se combinent.");
+q(2,"Un cookie « persistant third-party » est :","Conservé jusqu’à une date d’expiration et associé à un autre domaine que le site consulté","Supprimé à la fermeture et associé au site consulté","Conservé jusqu’à expiration et associé au site consulté","Supprimé à la fermeture et associé à un autre domaine","Persistant = date d’expiration. Third-party = domaine différent du site visité.");
+q(2,"Pour savoir si des visiteurs ont demandé une page inexistante, quel mécanisme est le plus direct ?","Les logs serveur (réponses 404)","Un cookie persistant","Un pixel dans un e-mail","Le cache du navigateur","Les logs enregistrent les requêtes et leurs codes HTTP, dont le 404 (ressource non trouvée).");
+q(2,"Un visiteur bloque JavaScript. Quel mécanisme risque de ne rien envoyer ?","Le tag (page tagging)","Les logs serveur","L’enregistrement des requêtes HTTP côté serveur","Le fichier journal du serveur","Le tag est du code exécuté dans le navigateur ; les logs sont enregistrés côté serveur.");
+q(2,"Pourquoi un même utilisateur peut-il apparaître comme deux visiteurs différents ?","Il a supprimé son cookie, changé de navigateur ou changé d’appareil","Le serveur a changé de code HTTP","Le tag a été exécuté deux fois par le serveur","Les logs ont été archivés","L’identifiant correspond à un navigateur ou contexte technique, pas nécessairement à une personne unique.");
+q(2,"« Référent / source d’arrivée » est une information de la catégorie :","Origine","Environnement","Interaction","Identifiant technique","Les six catégories : Page, Temps, Origine, Environnement, Interaction, Identifiant technique.");
+q(2,"« Navigateur, type d’appareil, écran » correspond à la catégorie :","Environnement","Origine","Temps","Page","Les six catégories : Page, Temps, Origine, Environnement, Interaction, Identifiant technique.");
+q(2,"Un pixel de suivi est bloqué par le navigateur. Quelle conséquence ?","L’événement attendu peut ne pas être enregistré","Le serveur supprime les logs","Le cookie devient third-party","La page ne s’affiche plus","Le pixel déclenche une requête au chargement : bloqué, le suivi peut échouer.");
+q(2,"Dans l’architecture globale de collecte, quel est le rôle du tag ?","Préparer les données à transmettre","Recevoir la collecte","Produire le rapport","Charger la page","Utilisateur → Navigateur (charge la page) → Tag (prépare les données) → Requête (transporte) → Serveur Analytics (reçoit) → Rapport.");
+q(2,"« Le serveur renvoie le HTML ; la page référence le code de suivi » correspond à quelle étape du page tagging ?","La réponse du serveur","La requête de page","L’exécution du tag","Le traitement","Requête de page → Réponse du serveur → Exécution du tag → Envoi des données → Traitement.");
+q(2,"Une page contient 1 HTML, 4 images, 2 feuilles CSS, 1 script JavaScript et 1 police. Combien de requêtes possibles ?","9","1","8","10","1 + 4 + 2 + 1 + 1 = 9. Une seule page, plusieurs hits.");
+q(2,"La collecte et le traitement des données sont :","Deux étapes distinctes : recevoir/enregistrer, puis organiser","Exactement la même étape","Deux étapes dans l’ordre inverse","Deux noms de l’analyse","Vrai/faux du cours : « collecte et traitement = exactement la même étape » est faux.");
+
+q(3,"Quel KPI est le plus éloigné de sa cible dans l’étude de cas ?","Taux de conversion (21,9 % pour une cible ≥ 25 %)","CTR (6 % pour une cible ≥ 5 %)","CPC (3 DH pour une cible ≤ 4 DH)","Coût par inscription (17,14 DH pour une cible ≤ 20 DH)","Seul le taux de conversion est sous sa cible.");
+q(3,"Un CTR de 6 % signifie :","Environ 6 clics pour 100 affichages de l’annonce","6 inscriptions pour 100 sessions","6 sessions pour 100 clics","6 DH par clic","CTR = clics ÷ impressions × 100.");
+q(3,"Un taux de conversion de 21,9 % signifie :","Environ 22 inscriptions terminées pour 100 sessions observées","22 clics pour 100 impressions","22 % des visiteurs ont acheté","22 sessions sur 100 ont rebondi","Conversion = inscriptions ÷ sessions × 100.");
+q(3,"Le CPC le plus bas garantit-il le plus d’inscriptions ?","Non : le social a un CPC plus bas (≈ 1,29 DH) mais convertit moins (15 % contre 25 %)","Oui, un clic moins cher génère toujours plus d’inscriptions","Oui, car le CPC mesure la conversion","Le CPC n’est jamais comparable entre campagnes","Le coût d’un clic ne dit rien de ce que fait le visiteur ensuite.");
+q(3,"« Certains champs ou erreurs pourraient rendre le formulaire difficile à terminer » est :","Une hypothèse","Un constat","Une cible","Une métrique","Constat (30 % d’abandon) → Hypothèse → Action à tester → nouvelle mesure.");
+q(3,"Après avoir modifié le formulaire, que faut-il faire ?","Mesurer à nouveau le même KPI et comparer des périodes comparables","Changer de KPI pour repartir de zéro","Supprimer la cible","Comparer avec un autre KPI sur une autre période","Le cours : mesurer à nouveau le même KPI, sur des périodes comparables.");
+q(3,"Dans quelle famille de KPI classe-t-on le CTR ?","Visibilité","Acquisition","Conversion","Coût / valeur","Visibilité : impressions, CTR. Acquisition : sessions par source, CPC. Conversion : inscriptions, taux de conversion, abandon. Coût/valeur : coût par inscription, revenu par commande.");
+q(3,"Dans quelle famille de KPI classe-t-on le CPC ?","Acquisition","Visibilité","Conversion","Coût / valeur","Visibilité : impressions, CTR. Acquisition : sessions par source, CPC. Conversion : inscriptions, taux de conversion, abandon. Coût/valeur : coût par inscription, revenu par commande.");
+q(3,"Que représentent les nombres de sessions du tableau de la campagne ?","Les sessions ayant atteint chaque étape (hypothèse de lecture)","Le nombre d’utilisateurs uniques","Le nombre de hits serveur","Le nombre de clics publicitaires","Hypothèse de lecture du cours : les nombres de sessions représentent les sessions ayant atteint chaque étape.");
+q(3,"Quel est le dénominateur du taux d’abandon du formulaire ?","Les sessions qui ont commencé le formulaire","Les sessions totales du site","Les impressions","Les inscriptions terminées","(débuts − inscriptions) ÷ débuts × 100.");
+q(3,"Pourquoi l’objectif « Améliorer le site » est-il insuffisant ?","On ne sait pas quel résultat doit changer ni comment vérifier le progrès","Il est trop précis","Il ne contient pas de graphique","GA4 l’interdit","Objectif vague → objectif utile → objectif mesurable (ex. 25 % de conversion le mois prochain).");
+
+q(4,"Laquelle de ces affirmations est FAUSSE ?","GA4 est le mécanisme de collecte lui-même","La balise envoie les événements ; GA4 les reçoit et les organise","Le compte de démonstration permet d’explorer les rapports sans configurer le site","Le flux Web est associé à un ID de mesure commençant par G-","GA4 n’est pas le mécanisme de collecte : la balise envoie, GA4 reçoit, organise et restitue.");
+q(4,"Quelle rubrique répond à « Qui visite le site et depuis quel appareil ? »","Attributs utilisateur / Technologie","Acquisition de trafic","Pages et écrans","Événements clés","Technologie : pays, langue, appareil, navigateur.");
+q(4,"Un enseignant vient de tester le site et veut savoir si des utilisateurs sont actifs en ce moment. Quel rapport ?","Temps réel","Acquisition de trafic","Pages et écrans","Événements clés","Exercice du cours : A → Acquisition de trafic, B → Pages et écrans, C → Événements, D → Temps réel.");
+q(4,"Quel rapport donne les vues, utilisateurs et engagement par page ?","Pages et écrans","Acquisition de trafic","Événements clés","Temps réel","Pages et écrans : vues, utilisateurs, durée moyenne d’engagement, nombre d’événements.");
+q(4,"Quels sont les prérequis avant d’installer GA4 sur un site ?","Un compte Google, des droits Analytics suffisants et un accès au site (CMS, HTML ou GTM)","Un serveur dédié et une base de données","Un compte publicitaire payant","Un certificat de sécurité","Trois prérequis : compte Google, droits Analytics, accès au site.");
+q(4,"Avec l’installation manuelle, où place-t-on le code Google tag ?","Dans le HTML de chaque page, juste après l’ouverture de &lt;head&gt;","À la fin du fichier CSS","Dans le fichier de logs","Dans un cookie","Méthode C (code manuel). Ne pas installer deux fois la même balise : risque de doublons.");
+q(4,"Avec Google Tag Manager, comment configure-t-on la balise Google ?","Avec l’ID G-, déclenchée sur toutes les pages, puis prévisualisée et publiée","Avec l’ID UA-, sans prévisualisation","En copiant les logs du serveur","En créant un cookie tiers","Méthode B (GTM) : installer le conteneur, créer une balise Google avec l’ID G-, déclencher sur toutes les pages, prévisualiser puis publier.");
+q(4,"Que mesure la « durée d’engagement » ?","Le temps pendant lequel le site est réellement au premier plan et utilisé","Le temps de chargement du serveur","La durée de vie du cookie","Le temps entre deux achats","Définition du cours, sur la page d’accueil de GA4.");
+q(4,"« Vues par utilisateur actif » correspond à :","La fréquence moyenne des vues pour un utilisateur actif","Le nombre total d’utilisateurs","Le revenu par page","Le temps moyen passé sur le site","Avec la durée moyenne d’engagement et le nombre d’événements, elle complète l’analyse des pages.");
+q(4,"La documentation Google Analytics est :","Une aide à l’utilisation de GA4, pas un rapport Analytics","Un rapport d’acquisition","Un flux de données Web","Une balise à installer","Elle permet d’accéder aux rapports, d’apprendre GA4 et de configurer son propre site.");
+q(4,"Quel parcours de formation convient aux développeurs ?","Ajouter les balises, configurer les événements et instrumenter l’e-commerce","Découvrir l’interface et lire les premiers rapports","Approfondir l’acquisition et les segments","Gérer les budgets publicitaires","Trois parcours : débutants, marketing/analystes, développeurs.");
+q(4,"Dans le funnel GA4, quelle est la perte relative entre view_cart (6 746) et begin_checkout (4 180) ?","≈ 38 %","≈ 62 %","≈ 55 %","≈ 1 %","(6 746 − 4 180) ÷ 6 746 ≈ 0,38.");
+q(4,"À quelle étape de mise en place configure-t-on les mesures améliorées et les événements clés ?","Étape 5 : configurer les événements","Étape 1 : créer la propriété","Étape 3 : installer la balise","Étape 4 : vérifier la collecte","Étapes : propriété, flux Web, balise, vérification, configuration des événements.");
+q(4,"Organic Search représente quelle part des sessions dans la démo ?","21,66 %","51,47 %","16,44 %","71,98 %","Direct 51,47 % • Organic Search 21,66 % • Paid Search 16,44 %. (71,98 % est le taux d’engagement d’Organic Search.)");
+
+/* ---------- Thèmes ---------- */
+const TH_DEF={1:"Définitions & démarche",2:"Architecture & limites",3:"Concepts KPI",4:"Acquisition & rapports"};
+const TH_RULES={
+ 1:[["Historique des outils",/log|tagging|1993|1999|2005|2010|event tracking|web 2/i],["Données & écosystème",/écosystème|canal|propriét|domaine|catégorie|points de contact|nouveaux|navigation|technologie/i]],
+ 2:[["Cookies",/cookie/i],["Pixel / beacon",/pixel|beacon/i],["Tags & événements",/tag|page_view|add_to_cart|javascript|événement/i],["Logs serveur",/log|hit|404|http|requête/i]],
+ 4:[["Mise en place",/balise|flux|propriété|installer|id de mesure|api|protocol|prérequis|head|gtm|tag manager|vérifier|étape/i],["Événements & parcours",/événement|purchase|add_to_cart|funnel|entonnoir|session_start|first_visit|parcours/i]]
+};
+function themeOf(x){
+  const txt=x.t+" "+x.o[0];
+  if(x.ch===3)return (x.t.match(/\d+/g)||[]).length>=2?"Calculs & cas pratiques":"Concepts KPI";
+  const rules=TH_RULES[x.ch]||[];
+  for(let i=0;i<rules.length;i++)if(rules[i][1].test(txt))return rules[i][0];
+  return TH_DEF[x.ch];
+}
+Q.forEach(function(x){x.th=themeOf(x);x.tk=x.ch+"|"+x.th});
+
+/* ---------- Générateur de calculs ---------- */
+const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const nf=n=>String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g," ");
+const fr=(n,d)=>{let s=Number(n).toFixed(d===undefined?1:d);if(s.indexOf(".")>-1)s=s.replace(/0+$/,"").replace(/\.$/,"");return s.replace(".",",")};
+const pc=n=>fr(n,1)+" %";
+function mk(ch,t,opts,e,th){
+  if(new Set(opts).size!==4)return null;
+  return {ch:ch,t:t,o:opts,e:e,th:th||"Calculs générés",tk:"gen",gen:1};
+}
+const GENS=[
+ function(){const I=rnd(8,40)*1000,C=Math.round(I*rnd(20,90)/1000/10)*10,S=Math.round(C*rnd(70,92)/100);
+  return mk(3,"Une annonce affiche "+nf(I)+" impressions et obtient "+nf(C)+" clics, pour "+nf(S)+" sessions mesurées. Quel est le CTR ?",
+   [pc(C/I*100),pc(C/S*100),pc(S/I*100),fr(C/I,2)+" %"],"CTR = clics ÷ impressions × 100 = "+nf(C)+" ÷ "+nf(I)+" × 100 = "+pc(C/I*100)+".")},
+ function(){const C=rnd(6,30)*100,D=rnd(15,80)*100,S=Math.round(C*rnd(70,92)/100),N=rnd(40,200);
+  return mk(3,"Une campagne dépense "+nf(D)+" DH pour "+nf(C)+" clics, "+nf(S)+" sessions et "+N+" inscriptions. Quel est le CPC ?",
+   [fr(D/C,2)+" DH",fr(D/S,2)+" DH",fr(D/N,2)+" DH",fr(C/D,2)+" DH"],"CPC = dépense ÷ clics = "+nf(D)+" ÷ "+nf(C)+" = "+fr(D/C,2)+" DH.")},
+ function(){const S=rnd(5,20)*100,C=Math.round(S*rnd(110,140)/100),N=Math.round(S*rnd(10,30)/100);
+  return mk(3,"Sur "+nf(C)+" clics, "+nf(S)+" sessions ont été mesurées et "+nf(N)+" inscriptions terminées. Quel est le taux de conversion (sessions → inscriptions) ?",
+   [pc(N/S*100),pc(N/C*100),pc(S/C*100),fr(N/S,2)+" %"],"Conversion = inscriptions ÷ sessions × 100 = "+nf(N)+" ÷ "+nf(S)+" × 100 = "+pc(N/S*100)+".")},
+ function(){const O=rnd(30,80)*10,B=Math.round(O*rnd(55,80)/100),N=Math.round(B*rnd(55,80)/100);
+  return mk(3,nf(O)+" sessions ont ouvert le formulaire, "+nf(B)+" l’ont commencé et "+nf(N)+" l’ont terminé. Quel est le taux d’abandon du formulaire ?",
+   [pc((B-N)/B*100),pc((O-N)/O*100),pc((B-N)/N*100),pc(N/B*100)],"Abandon = (débuts − inscriptions) ÷ débuts × 100 = ("+nf(B)+" − "+nf(N)+") ÷ "+nf(B)+" × 100 = "+pc((B-N)/B*100)+".")},
+ function(){const S=rnd(10,50)*20,R=Math.round(S*rnd(20,60)/100);
+  return mk(3,"Sur "+nf(S)+" sessions, "+nf(R)+" sont sans engagement (moins de 10 s, aucun événement clé, une seule page vue). Quel est le taux de rebond ?",
+   [pc(R/S*100),pc((S-R)/S*100),pc(R/(S-R)*100),pc((S-R)/R*100)],"Rebond = sessions sans engagement ÷ sessions totales × 100 = "+nf(R)+" ÷ "+nf(S)+" × 100 = "+pc(R/S*100)+".")},
+ function(){const N=rnd(40,300),D=N*rnd(8,25)+rnd(0,9)*10,C=rnd(8,25)*100,S=Math.round(C*0.8);
+  return mk(3,"Dépense : "+nf(D)+" DH. Résultats : "+nf(C)+" clics, "+nf(S)+" sessions, "+N+" inscriptions. Quel est le coût par inscription ?",
+   [fr(D/N,2)+" DH",fr(D/C,2)+" DH",fr(D/S,2)+" DH",fr(N/D,2)+" DH"],"Coût par inscription = dépense ÷ inscriptions = "+nf(D)+" ÷ "+N+" = "+fr(D/N,2)+" DH.")},
+ function(){const names=["Visiteurs","Fiche produit","Panier","Livraison","Paiement","Achat"];let v,pct,ok=false,tries=0;
+  while(!ok&&tries<200){tries++;v=[rnd(8,20)*100];pct=[];for(let i=1;i<6;i++){v.push(Math.round(v[i-1]*rnd(30,90)/100))}
+   if(v.some(x=>x<5))continue;pct=[];for(let i=1;i<6;i++)pct.push((v[i-1]-v[i])/v[i-1]*100);
+   const s=pct.slice().sort((a,b)=>b-a);ok=s[0]-s[1]>=5}
+  const t=pct.indexOf(Math.max.apply(null,pct)),idx=[0,1,2,3,4];
+  const pick=[t].concat(shuffleArr(idx.filter(i=>i!==t)).slice(0,3));
+  const lab=i=>names[i]+" → "+names[i+1];
+  return mk(3,"Entonnoir : "+names.map((n,i)=>n+" "+nf(v[i])).join(" • ")+". Entre quelles étapes la perte relative est-elle la plus forte ?",
+   pick.map(lab),"Pertes relatives : "+pct.map((p,i)=>lab(i)+" "+pc(p)).join(" ; ")+". La plus forte est "+lab(t)+".")},
+ function(){const A=rnd(30,150)*100,B=Math.round(A*rnd(25,85)/100);
+  return mk(4,"Dans un parcours GA4, "+nf(A)+" utilisateurs passent par l’étape 1 et "+nf(B)+" par l’étape 2. Quelle est la perte relative entre les deux étapes ?",
+   [pc((A-B)/A*100),pc((A-B)/B*100),pc(B/A*100),pc(A/B*100)],"Perte = (A − B) ÷ A × 100 = ("+nf(A)+" − "+nf(B)+") ÷ "+nf(A)+" × 100 = "+pc((A-B)/A*100)+". Le dénominateur est l’étape de départ.")},
+ function(){const h=rnd(2,6),c=rnd(1,3),j=rnd(1,3),f=rnd(0,2),tot=1+h+c+j+f;
+  return mk(2,"Une page charge 1 HTML, "+h+" image"+(h>1?"s":"")+", "+c+" feuille"+(c>1?"s":"")+" CSS, "+j+" script"+(j>1?"s":"")+" JavaScript et "+f+" police"+(f>1?"s":"")+". Combien de requêtes (hits) peut recevoir le serveur pour ce seul chargement ?",
+   [String(tot),"1",String(tot-1),String(tot+1)],"1 + "+h+" + "+c+" + "+j+" + "+f+" = "+tot+" requêtes possibles : le nombre de hits n’est pas le nombre de visiteurs.","Calculs générés")}
+];
+function shuffleArr(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));const t=a[i];a[i]=a[j];a[j]=t}return a}
+function genQ(){let x=null,n=0;while(!x&&n++<60)x=GENS[rnd(0,GENS.length-1)]();return x}
+
+/* ---------- Cartes mémoire ---------- */
+const FC=[
+[1,"Analytics ou Analysis ?","<b>Analysis</b> : examen et interprétation. <b>Analytics</b> : discipline + méthodes + outils pour produire des insights. L’analytics est plus large."],
+[1,"Chaîne de la donnée à la décision","DATA → ANALYSIS → INSIGHT → DECISION"],
+[1,"Cycle du Web Analytics","COLLECTER → MESURER → ANALYSER → INTERPRÉTER → AGIR"],
+[1,"Les 4 axes d’amélioration","Acquisition • Engagement • Conversion • Expérience utilisateur"],
+[1,"Question centrale du Web Analytics","« Que voulons-nous améliorer ? »"],
+[1,"Enjeu fondamental","Obtenir des insights significatifs pour maximiser la réussite des investissements digitaux."],
+[1,"Les 4 grandes périodes de l’évolution","1993–1998 logs • 1999–2004 page tagging • 2005–2009 croissance / Web 2.0 / événements • 2010+ digital analytics"],
+[1,"Démarche d’analyse en 5 temps","Constat → Question → Hypothèse → Action → Nouvelle mesure"],
+[1,"Les 7 domaines d’application","Sites Web • Mobile • Campagnes • Social • Enquêtes • Concurrence • Offline influencé (ventes issues de leads en ligne)"],
+[1,"Propriétés ou canaux digitaux ?","<b>Propriétés</b> : site Web, site mobile, application mobile. <b>Canaux</b> : bannières, Paid Search, e-mail, réseaux sociaux."],
+[1,"Les 5 types de données analysables","Utilisateurs • Navigation • Technologie • Acquisition • Conversion"],
+[2,"De l’interaction au rapport","Utilisateur → Page / interaction → Mécanisme de collecte → Traitement → Rapport"],
+[2,"Collecter, traiter, analyser","<b>Collecter</b> = recevoir/enregistrer. <b>Traiter</b> = organiser, filtrer. <b>Analyser</b> = interpréter."],
+[2,"Que contient une ligne de log ?","IP • date/heure • méthode + ressource (GET /produits) • code de réponse (200 = succès, 404 = ressource non trouvée)."],
+[2,"Pourquoi hits ≠ visiteurs ?","Une page génère plusieurs requêtes : 1 HTML + 2 images + 1 CSS + 1 JS + 1 police = 6 hits pour un seul chargement."],
+[2,"Limites des logs","Plusieurs hits par page • robots • cache • pas de clic sur une page déjà chargée. Atout : diagnostic technique."],
+[2,"Étapes du page tagging","Requête de page → Réponse du serveur → Exécution du tag → Envoi des données → Traitement"],
+[2,"page_view ou add_to_cart ?","<b>page_view</b> : ouverture d’une page. <b>add_to_cart</b> : événement (clic) qui doit être prévu et configuré."],
+[2,"Qu’est-ce qu’un cookie ?","Une petite donnée textuelle stockée dans le navigateur (ex. identifiant = A123). Pas un programme. Identifiant technique ≠ personne."],
+[2,"Session / persistant, first / third-party","Session/persistant = <b>durée</b> de conservation. First/third-party = <b>domaine</b> du cookie. Deux critères indépendants."],
+[2,"Pixel / beacon","Petite ressource distante, souvent invisible, dont le chargement déclenche une requête de suivi. Bloquée, elle ne signale rien."],
+[2,"Pourquoi la collecte est incomplète","Tag absent • JavaScript bloqué • cookies supprimés • robots et cache • choix de confidentialité."],
+[2,"Architecture globale de collecte","Utilisateur → Navigateur → Tag → Requête → Serveur Analytics → Rapport"],
+[3,"Métrique, KPI, cible","<b>Métrique</b> : mesure chiffrée (210 inscriptions). <b>KPI</b> : métrique choisie pour suivre un objectif (taux de conversion). <b>Cible</b> : niveau attendu (25 %)."],
+[3,"CTR","clics ÷ impressions × 100. Ex. 1 200 ÷ 20 000 = 6 %."],
+[3,"CPC","dépense ÷ clics. Ex. 3 600 ÷ 1 200 = 3 DH."],
+[3,"Taux de conversion","inscriptions ÷ sessions × 100. Ex. 210 ÷ 960 ≈ 21,9 %."],
+[3,"Taux d’abandon du formulaire","(débuts − inscriptions) ÷ débuts × 100. Ex. (300 − 210) ÷ 300 = 30 %."],
+[3,"Coût par inscription","dépense ÷ inscriptions. Ex. 3 600 ÷ 210 ≈ 17,14 DH."],
+[3,"Taux de rebond et session engagée","Rebond = sessions sans engagement ÷ sessions × 100. Engagée si : plus de 10 s <b>ou</b> événement clé <b>ou</b> au moins 2 pages vues."],
+[3,"Un KPI interprétable","Objectif • Formule • Périmètre • Période • Cible"],
+[3,"Du constat à l’action","Constat (30 % d’abandon) → Hypothèse (champs difficiles ?) → Action à tester → Mesurer à nouveau le même KPI."],
+[3,"Cibles de l’étude de cas","CTR 6 % (≥ 5 %) atteinte • CPC 3 DH (≤ 4) atteinte • Conversion 21,9 % (≥ 25 %) <b>à améliorer</b> • Coût/inscription 17,14 DH (≤ 20) atteinte."],
+[3,"Recherche payante vs réseaux sociaux","Recherche : CTR 6 %, CPC 2,50 DH, conversion 25 %, 12 DH/inscription. Social : CTR 3,5 %, CPC ≈ 1,29 DH, conversion 15 %, 10 DH/inscription."],
+[4,"Où intervient GA4 ?","Site → collecte (Google tag / GTM) → <b>GA4</b> → rapports → KPI et action. GA4 n’est pas le mécanisme de collecte."],
+[4,"Structure Google Analytics","Compte → Propriété GA4 → Flux de données Web. L’ID de mesure commence par <b>G-</b>."],
+[4,"Menu de GA4","Accueil • Rapports • Explorer • Publicité • Administration"],
+[4,"Acquisition d’utilisateurs ou de trafic ?","<b>Utilisateurs</b> : canal de la 1re découverte. <b>Trafic</b> : canal de la session."],
+[4,"Direct vs Organic Search (démo)","Direct : 71 051 sessions mais 27,89 % d’engagement. Organic : 29 900 sessions et 71,98 %. Volume ≠ engagement."],
+[4,"Événement ou événement clé ?","Événement : interaction enregistrée. Événement clé : événement important pour l’activité (ex-« conversion »)."],
+[4,"purchase dans la démo","1 395 événements • 1 267 utilisateurs • 270 407,23 $ : un utilisateur peut déclencher plusieurs achats."],
+[4,"Funnel d’achat de la démo","add_to_cart 14 921 → view_cart 6 746 → begin_checkout 4 180 → add_shipping_info 4 134 → add_payment_info 2 827 → purchase 1 395"],
+[4,"Mettre GA4 sur son site","1. propriété • 2. flux Web (ID G-) • 3. balise (CMS, GTM, code manuel) • 4. vérifier (Temps réel, DebugView, Tag Assistant) • 5. événements."],
+[4,"gtag.js, Data API, Measurement Protocol","<b>gtag.js</b> : collecter. <b>Data API (runReport)</b> : interroger les rapports. <b>Measurement Protocol</b> : événements serveur à serveur."],
+[4,"Rapport pour quelle question ?","Origine des visites → Acquisition de trafic • Pages vues → Pages et écrans • Actions → Événements • Activité immédiate → Temps réel • Appareil → Technologie."]
+];
+
+const CH={1:"Séance 1 · Introduction",2:"Séance 2 · Collecte",3:"Séance 3 · KPI",4:"Séance 4 · Outils (GA4)"};
+const CHS={1:"Introduction",2:"Collecte",3:"KPI",4:"GA4"};
+const LET=["A","B","C","D"];
+
+/* ---------- Fiches ---------- */
+function chain(a){return '<div class="chain">'+a.map(x=>'<span class="node">'+x+'</span>').join('<span class="arr" aria-hidden="true">→</span>')+'</div>'}
+function funnel(rows){
+  const max=rows[0][1];let worst=-1,wl=-1;
+  const loss=rows.map((r,i)=>i?(rows[i-1][1]-r[1])/rows[i-1][1]*100:0);
+  loss.forEach((l,i)=>{if(l>wl){wl=l;worst=i}});
+  return '<div class="fun">'+rows.map((r,i)=>'<div class="fr'+(i===worst?" worst":"")+'"><div class="lh"><span class="lb">'+r[0]+'</span><span class="vl mono">'+nf(r[1])+'</span></div><span class="tr"><i style="width:'+Math.max(2,r[1]/max*100)+'%"></i></span>'+(i?'<span class="ls">−'+fr(loss[i],1)+' % vs étape précédente'+(i===worst?' · plus forte perte':'')+'</span>':'')+'</div>').join("")+'</div>'
+}
+function mechTable(){return '<div class="tw"><table><thead><tr><th>Mécanisme</th><th>Où ?</th><th>Rôle</th><th>Limite</th></tr></thead><tbody><tr><td><b>Logs</b></td><td>Serveur</td><td>Requêtes reçues, codes HTTP</td><td>Plusieurs hits par page, robots, cache</td></tr><tr><td><b>Tag</b></td><td>Page / navigateur</td><td>Pages vues et événements configurés</td><td>Tag absent ou JS bloqué</td></tr><tr><td><b>Cookie</b></td><td>Navigateur</td><td>Identifiant technique</td><td>Supprimé, bloqué, indisponible</td></tr><tr><td><b>Pixel / beacon</b></td><td>Ressource distante</td><td>Requête au chargement</td><td>Ressource bloquée</td></tr></tbody></table></div>'}
+function cibleTable(){return '<div class="tw"><table><thead><tr><th>KPI</th><th>Résultat</th><th>Cible</th><th>Lecture</th></tr></thead><tbody><tr><td>CTR</td><td class="mono">6 %</td><td class="mono">≥ 5 %</td><td>Atteinte</td></tr><tr><td>CPC</td><td class="mono">3 DH</td><td class="mono">≤ 4 DH</td><td>Atteinte</td></tr><tr><td>Conversion</td><td class="mono">21,9 %</td><td class="mono">≥ 25 %</td><td><b>À améliorer</b></td></tr><tr><td>Coût / inscription</td><td class="mono">17,14 DH</td><td class="mono">≤ 20 DH</td><td>Atteinte</td></tr></tbody></table></div>'}
+function visual(c){
+  const box=(t,b)=>'<div class="card stack" style="gap:10px"><h3>'+t+'</h3>'+b+'</div>';
+  if(c===1)return box("Schéma : de la donnée à la décision",chain(["Data","Analysis","Insight","Decision"])+'<p class="small muted">Cycle du Web Analytics</p>'+chain(["Collecter","Mesurer","Analyser","Interpréter","Agir"])+'<p class="small muted">Exemple e-commerce : où perd-on le plus d’utilisateurs ?</p>'+funnel([["Visiteurs",1000],["Produit consulté",600],["Panier",200],["Paiement",100],["Achats",50]]));
+  if(c===2)return box("Schéma : architecture de collecte",chain(["Utilisateur","Navigateur","Tag","Requête","Serveur Analytics","Rapport"])+'<p class="small muted">Page tagging, étape par étape</p>'+chain(["Requête de page","Réponse du serveur","Exécution du tag","Envoi des données","Traitement"])+mechTable());
+  if(c===3)return box("Schéma : entonnoir de la campagne",funnel([["Page d’arrivée",960],["Formulaire ouvert",480],["Formulaire commencé",300],["Inscription terminée",210]])+cibleTable());
+  return box("Schéma : de la page à la décision",chain(["Site Web","Google tag / GTM","GA4","Rapports","KPI et action"])+'<p class="small muted">Parcours d’achat de la démo (événements)</p>'+funnel([["add_to_cart",14921],["view_cart",6746],["begin_checkout",4180],["add_shipping_info",4134],["add_payment_info",2827],["purchase",1395]]));
+}
+const FICHES={
+1:{secs:[
+ {h:"Data, Analysis, Analytics",l:["<b>Data</b> : faits mesurés (5 000 visiteurs, 300 achats).","<b>Analysis</b> : examen et interprétation (pourquoi les visiteurs quittent-ils le site ?).","<b>Analytics</b> : discipline + méthodes + outils → insights pour éclairer les décisions. Plus large que l’analyse d’un tableau.","Chaîne : <b>DATA → ANALYSIS → INSIGHT → DECISION</b>."]},
+ {h:"Web Analytics : définition et cycle",l:["Mesurer et analyser les données d’un site pour comprendre les comportements et améliorer les performances.","Cycle : <b>Collecter → Mesurer → Analyser → Interpréter → Agir</b>.","Question centrale : <b>« Que voulons-nous améliorer ? »</b>","4 axes : <b>Acquisition • Engagement • Conversion • Expérience utilisateur</b>.","Un chiffre seul ne suffit pas (10 000 visiteurs ne prouvent pas que le site fonctionne)."]},
+ {h:"Enjeux et domaines",l:["5 enjeux : performance, insights, ROI/succès, décision (éviter de mal interpréter), amélioration.","Enjeu fondamental : insights significatifs pour maximiser la réussite des investissements digitaux.","7 domaines : sites Web, mobile, campagnes, social, enquêtes, concurrence, offline influencé (ventes issues de leads en ligne)."]},
+ {h:"Initiatives et écosystème",l:["<b>Propriétés</b> : site Web, site mobile, application mobile, autres.","<b>Canaux</b> : bannières, Paid Search, e-mail, réseaux sociaux.","Écosystème : Utilisateurs → Points de contact → Collecte &amp; données → Outils d’analyse &amp; reporting → Insights &amp; décisions.","Données analysables : utilisateurs, navigation, technologie, acquisition, conversion."]},
+ {h:"Évolution historique",l:["<b>1993–1998</b> : logs (hits côté serveur).","<b>1999–2004</b> : page tagging (JavaScript + cookies).","<b>2005–2009</b> : croissance, Web 2.0, event tracking (clics, vidéo, interactions).","<b>2010+</b> : digital analytics (Web + mobile + social)."]},
+ {h:"Démarche d’analyse",l:["<b>Constat → Question → Hypothèse → Action → Nouvelle mesure</b>.","Exemple mobile : 70 % de mobiles + conversion faible → problème UX possible → optimiser puis remesurer.","Entonnoir 1 000 → 600 → 200 → 100 → 50 : plus forte perte entre produit consulté et panier (−66,7 %)."]}
+ ],trap:["Analytics ≠ Analysis.","Hits ≠ visiteurs.","Le chiffre seul ne donne ni cause ni décision."]},
+2:{secs:[
+ {h:"Collecter, traiter, analyser",l:["<b>Collecter</b> = recevoir/enregistrer ; <b>traiter</b> = organiser, filtrer ; <b>analyser</b> = interpréter.","Chaîne : Utilisateur → Page/interaction → Mécanisme → Traitement → Rapport.","Informations collectables : page, temps, origine (référent), environnement, interaction, identifiant technique. Cela dépend de la configuration."]},
+ {h:"Logs serveur",l:["Fichier journal des requêtes reçues. Exemple : <code>192.0.2.15 [12/10/2026 14:02] GET /produits 200</code> (IP, date/heure, méthode + ressource, code 200 = succès).","Apportent : ressources demandées, erreurs HTTP (404), référent, environnement.","<b>Limites</b> : 1 page = plusieurs hits (1 HTML + 2 images + CSS + JS + police = 6), robots, cache, pas de clic sans nouvelle requête.","Idéal pour le <b>diagnostic technique</b>."]},
+ {h:"Tags (page tagging)",l:["Petit code, souvent JavaScript, intégré à la page pour déclencher la collecte (URL, titre, référent, navigateur, écran, événements configurés).","Étapes : requête de page → réponse du serveur → exécution du tag → envoi des données → traitement.","<code>page_view</code> = page consultée ; <code>add_to_cart</code> = événement (clic) à configurer.","Limite : tag absent ou code non exécuté → données manquantes."]},
+ {h:"Cookies",l:["Petite donnée textuelle dans le navigateur (ex. identifiant = A123), pas un programme.","Reconnaître un navigateur, relier des visites, distinguer nouveaux et récurrents. <b>Identifiant technique ≠ personne</b>.","<b>Session / persistant</b> = durée de conservation.","<b>First-party / third-party</b> = domaine qui dépose le cookie (le third-party est plus restreint).","Peut être supprimé, bloqué ou indisponible."]},
+ {h:"Pixel / beacon et architecture",l:["Pixel : petite ressource distante (souvent invisible) dont le chargement déclenche une requête de suivi. Bloqué → pas d’événement.","Architecture : Utilisateur → Navigateur → Tag → Requête → Serveur Analytics → Rapport.","Le cookie n’est pas indispensable à tous les mécanismes."]}
+ ],trap:["Un log ne voit pas un clic qui ne déclenche pas de requête serveur.","Session/persistant et first/third-party sont deux critères indépendants.","Collecter ≠ observer 100 % des comportements : tag absent, JS bloqué, cookies supprimés, robots, cache, confidentialité."]},
+3:{secs:[
+ {h:"Objectif, métrique, KPI, cible",l:["Objectif → question de mesure → indicateur → cible → période.","<b>Métrique</b> : mesure chiffrée (210 inscriptions). <b>KPI</b> : métrique choisie pour suivre un objectif (taux de conversion). <b>Cible</b> : niveau attendu (25 %).","Un KPI bien défini : <b>objectif, formule, périmètre, période, cible</b>.","Un KPI peut être un volume, une durée, un coût ou un taux."]},
+ {h:"Choisir le KPI selon la question",l:["La pub attire-t-elle des clics ? → <b>CTR</b>.","Combien coûte un clic ? → <b>CPC</b>.","Les sessions aboutissent-elles ? → <b>taux de conversion</b>.","Le formulaire décourage-t-il ? → <b>taux d’abandon</b>.","Utilisateur ≠ session ≠ page vue (3 utilisateurs → 5 sessions → 14 pages vues)."]},
+ {h:"Étude de cas : campagne portes ouvertes",l:["20 000 impressions • 1 200 clics • 3 600 DH • 960 sessions • 480 formulaires ouverts • 300 commencés • 210 inscriptions.","Entonnoir : 960 → 480 (−50 %) → 300 (−37,5 %) → 210 (−30 %).","Par source : recherche payante 150/600 = 25 % ; réseaux sociaux 60/360 = 16,7 %.","Décision prioritaire : examiner la conversion (21,9 % &lt; 25 %) avant d’augmenter le budget."]},
+ {h:"Comparaison de deux campagnes",l:["<b>Recherche payante</b> : CTR 6 % • CPC 2,50 DH • conversion 25 % • coût/inscription 12 DH.","<b>Réseaux sociaux</b> : CTR 3,5 % • CPC ≈ 1,29 DH • conversion 15 % • coût/inscription 10 DH.","Priorité taux → recherche payante. Priorité coût → réseaux sociaux. Avant d’élargir le budget : qualité des inscriptions, période, volume."]}
+ ],trap:["Bon dénominateur : CTR → impressions ; conversion → sessions ; abandon → débuts.","CTR élevé ≠ beaucoup d’inscriptions.","Un taux localise une perte, pas sa cause.","Taux de rebond élevé = signal, pas preuve."]},
+4:{secs:[
+ {h:"Où intervient GA4 ?",l:["Site Web → collecte (Google tag ou GTM) → <b>GA4</b> → rapports → KPI &amp; action.","GA4 n’est <b>pas</b> le mécanisme de collecte : la balise envoie, GA4 reçoit, organise, restitue.","TP1 (Flask : tag.js → POST /collect-event → events.csv) suit la même logique, mais ses données restent locales.","Structure : <b>Compte → Propriété GA4 → Flux de données Web</b> ; ID de mesure <code>G-…</code>."]},
+ {h:"Menu et rapports",l:["<b>Accueil</b> (résumé), <b>Rapports</b>, <b>Explorer</b> (analyses approfondies), <b>Publicité</b> (attribution), <b>Administration</b> (comptes, propriétés, flux, accès).","Rapports : Acquisition, Engagement, Monétisation, Rétention, Attributs utilisateur / Technologie.","<b>Temps réel</b> : vérifier qu’un événement arrive ; vue immédiate mais partielle.","Acquisition d’<b>utilisateurs</b> = 1re découverte ; acquisition de <b>trafic</b> = canal de la session."]},
+ {h:"Chiffres de la démo (Google Merchandise Store)",l:["Sessions : Direct 71 051 (27,89 % d’engagement) • Organic Search 29 900 (71,98 %) • Paid Search 22 700 (52 %) • Referral 3 463 (73,52 %).","Pages : « / » 102 233 vues (8 s) • /checkout 15 493 vues (1 min 51 s).","Événements : page_view 428 178 • session_start 132 503 • first_visit 94 172.","<b>purchase</b> : 1 395 événements • 1 267 utilisateurs • 270 407,23 $."]},
+ {h:"Événements et événements clés",l:["Événement = interaction enregistrée (view_item, add_to_cart, purchase). Événement clé = événement important pour l’activité (ancien « conversion »).","Explorations : entonnoir, chemin, libre."]},
+ {h:"Mettre GA4 sur son site",l:["1. Créer la propriété • 2. créer le flux Web (ID G-) • 3. installer la balise (CMS, GTM ou gtag.js) • 4. vérifier (Temps réel, DebugView, Tag Assistant) • 5. configurer les événements.","Ne pas installer deux fois la balise (doublons).","<b>gtag.js</b> : collecter • <b>Data API runReport</b> : interroger les rapports (ne remplace pas la collecte) • <b>Measurement Protocol</b> : événements serveur à serveur."]}
+ ],trap:["Volume de sessions ≠ qualité ni engagement (Direct vs Organic).","Événements ≠ utilisateurs (1 395 achats pour 1 267 utilisateurs).","Compte de démo : lecture seule, on ne configure rien.","Le KPI vient de l’objectif, pas de GA4."]}
+};
+const MEMO_ROWS=[
+["CTR","clics ÷ impressions × 100","1 200 ÷ 20 000 = 6 %"],
+["CPC","dépense ÷ clics","3 600 ÷ 1 200 = 3 DH"],
+["Clic → session","sessions ÷ clics × 100","960 ÷ 1 200 = 80 %"],
+["Taux de conversion","inscriptions ÷ sessions × 100","210 ÷ 960 ≈ 21,9 %"],
+["Taux d’abandon formulaire","(débuts − inscriptions) ÷ débuts × 100","(300 − 210) ÷ 300 = 30 %"],
+["Coût par inscription","dépense ÷ inscriptions","3 600 ÷ 210 ≈ 17,14 DH"],
+["Taux de rebond","sessions sans engagement ÷ sessions × 100","70 ÷ 200 = 35 %"],
+["Perte entre étapes","(A − B) ÷ A × 100","(960 − 480) ÷ 960 = 50 %"],
+["KPI conversion GA4","sessions avec registration_complete ÷ sessions × 100","—"]
+];
+
+/* ---------- Stockage ---------- */
+const KEY="wa_prep_v2",DAY=864e5,BOX=[0,1,2,4,8,16];
+let DB={q:{},ex:[],fc:{},calc:{n:0,c:0},days:{}};
+function load(){try{const raw=localStorage.getItem(KEY)||localStorage.getItem("wa_prep_v1");if(raw){const o=JSON.parse(raw);if(o&&typeof o==="object"){DB.q=o.q||{};DB.ex=o.ex||[];DB.fc=o.fc||{};DB.calc=o.calc||{n:0,c:0};DB.days=o.days||{}}}}catch(e){}}
+load();
+function save(){try{localStorage.setItem(KEY,JSON.stringify(DB))}catch(e){}}
+function dkey(d){return d.toISOString().slice(0,10)}
+function touch(){const k=dkey(new Date());DB.days[k]=(DB.days[k]||0)+1}
+function streak(){let n=0,d=new Date();if(!(DB.days[dkey(d)]>0))d=new Date(d-DAY);while(DB.days[dkey(d)]>0){n++;d=new Date(d-DAY)}return n}
+function bx(r){return r.b!==undefined?r.b:(r.l?1:0)}
+function rec(id,ok){const r=DB.q[id]||{n:0,c:0,l:1,b:0,d:0};const b0=bx(r);r.n++;if(ok)r.c++;r.l=ok?1:0;r.b=ok?Math.min(b0+1,5):0;r.d=Date.now()+(ok?BOX[r.b]*DAY:0);DB.q[id]=r;touch()}
+function recAny(it,ok){if(it.id!==null)rec(it.id,ok);else{DB.calc.n++;if(ok)DB.calc.c++;touch()}}
+
+/* ---------- Utilitaires ---------- */
+const view=document.getElementById("view");
+const shuffle=shuffleArr;
+function idsOf(ch){const r=[];Q.forEach((x,i)=>{if(!ch||x.ch===ch)r.push(i)});return r}
+function stats(ch){let seen=0,solid=0,mid=0,bad=0;const ids=idsOf(ch);ids.forEach(i=>{const r=DB.q[i];if(r){seen++;if(!r.l)bad++;else if(bx(r)>=2)solid++;else mid++}});return{total:ids.length,seen:seen,solid:solid,mid:mid,bad:bad}}
+function pct(a,b){return b?Math.round(a/b*100):0}
+function fmtT(s){s=Math.max(0,Math.round(s));return String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0")}
+function mkItem(src){const isId=typeof src==="number";return{id:isId?src:null,q:isId?Q[src]:src,ord:shuffle([0,1,2,3]),pick:null}}
+function fmtDate(t){const d=new Date(t);return d.toLocaleDateString("fr-FR",{day:"2-digit",month:"short"})+" "+d.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})}
+function dueIds(){const now=Date.now();return idsOf(0).filter(i=>DB.q[i]&&(DB.q[i].d||0)<=now)}
+function thLabel(x){return x.gen?"Calculs générés":x.th+" · S"+x.ch}
+function themeStats(){
+  const m={};
+  Q.forEach((x,i)=>{const k=x.tk;if(!m[k])m[k]={key:k,label:thLabel(x),n:0,c:0,total:0,seen:0};m[k].total++;const r=DB.q[i];if(r){m[k].n+=r.n;m[k].c+=r.c;m[k].seen++}});
+  return Object.keys(m).map(k=>m[k]);
+}
+
+let ficheTab=1,pSetCh="daily",pSetN=10,xSetN=20,xPen=false,xGen=true,P=null,X=null,FS=null,fcCh="all",timerId=null,flash="";
+
+/* ---------- Vues ---------- */
+function ringSvg(p){const r=54,c=2*Math.PI*r;return '<div class="ring" role="img" aria-label="Maîtrise solide : '+p+' %"><svg width="132" height="132" viewBox="0 0 132 132"><circle class="bg" cx="66" cy="66" r="'+r+'" fill="none" stroke-width="11"/><circle class="fg" cx="66" cy="66" r="'+r+'" fill="none" stroke-width="11" stroke-linecap="round" stroke-dasharray="'+c.toFixed(1)+'" stroke-dashoffset="'+(c*(1-p/100)).toFixed(1)+'" transform="rotate(-90 66 66)"/></svg><div class="t"><div><b>'+p+'%</b><br><span>maîtrise solide</span></div></div></div>'}
+function trendSvg(){
+  const ex=DB.ex.slice(-12);if(ex.length<2)return '<p class="muted small">Le graphique apparaît à partir de deux examens blancs.</p>';
+  const W=600,H=190,L=34,R=14,T=14,Bm=26,iw=W-L-R,ih=H-T-Bm,y=v=>T+ih-(v/20)*ih,x=i=>L+(ex.length===1?0:i/(ex.length-1))*iw;
+  const pts=ex.map((e,i)=>[x(i),y(e.s/e.n*20),e.s/e.n*20]);
+  return '<svg class="chart" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Évolution des notes aux examens blancs">'+
+  [0,10,20].map(v=>'<line class="ax" x1="'+L+'" x2="'+(W-R)+'" y1="'+y(v)+'" y2="'+y(v)+'"/><text x="'+(L-6)+'" y="'+(y(v)+4)+'" text-anchor="end">'+v+'</text>').join("")+
+  '<line class="tg" x1="'+L+'" x2="'+(W-R)+'" y1="'+y(18)+'" y2="'+y(18)+'"/><text x="'+(W-R)+'" y="'+(y(18)+12)+'" text-anchor="end">objectif 18</text>'+
+  '<polyline class="ln" points="'+pts.map(p=>p[0].toFixed(1)+","+p[1].toFixed(1)).join(" ")+'"/>'+
+  pts.map((p,i)=>'<circle class="pt" cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="4"/><text class="v" x="'+p[0].toFixed(1)+'" y="'+Math.max(10,(p[1]-9)).toFixed(1)+'" text-anchor="middle">'+f1(p[2])+'</text>').join("")+'</svg>';
+}
+function vHome(){
+  const all=stats(0),cs=[1,2,3,4].map(c=>({c:c,s:stats(c)}));
+  const due=dueIds().length,best=DB.ex.reduce((m,e)=>Math.max(m,e.s/e.n*20),0),st=streak();
+  const today=DB.days[dkey(new Date())]||0;
+  const ts=themeStats().filter(t=>t.n>0).sort((a,b)=>a.c/a.n-b.c/b.n).slice(0,6);
+  const themes=ts.length?ts.map(t=>{const p=pct(t.c,t.n);return '<div class="th"><span class="nm">'+t.label+'</span><div class="bar" role="img" aria-label="'+p+' % de réussite"><i class="'+(p>=80?"g":p>=60?"m":"r")+'" style="width:'+p+'%"></i></div><span class="mono small">'+p+' % <span class="muted">('+t.n+')</span></span></div>'}).join(""):'<p class="muted small">Tes points faibles apparaîtront après quelques réponses.</p>';
+  const worst=ts.length?ts[0]:null;
+  const cards=cs.map(x=>{const s=x.s;return '<div class="card stack" style="gap:10px"><div><div class="eyebrow">'+CHS[x.c]+'</div><h3>'+CH[x.c].split(" · ")[1]+'</h3></div>'+
+    '<div class="bar" role="img" aria-label="'+s.solid+' solides, '+s.mid+' en cours, '+s.bad+' à revoir sur '+s.total+'"><i class="g" style="width:'+pct(s.solid,s.total)+'%"></i><i class="m" style="width:'+pct(s.mid,s.total)+'%"></i><i class="r" style="width:'+pct(s.bad,s.total)+'%"></i></div>'+
+    '<div class="small muted mono">'+s.solid+' solides · '+s.mid+' en cours · '+s.bad+' à revoir · '+(s.total-s.seen)+' neuves</div>'+
+    '<div class="row"><button class="btn" data-a="gofiche" data-c="'+x.c+'">Fiche</button><button class="btn pri" data-a="goprac" data-c="'+x.c+'">QCM</button></div></div>'}).join("");
+  const hist=DB.ex.length?'<div class="tw"><table><thead><tr><th>Date</th><th>Format</th><th>Score</th><th>Note</th></tr></thead><tbody>'+DB.ex.slice(-6).reverse().map(e=>'<tr><td>'+fmtDate(e.t)+'</td><td class="mono">'+e.n+' q · '+e.m+' min'+(e.pen?" · pénalité":"")+'</td><td class="mono">'+fmt1(e.s)+'/'+e.n+'</td><td class="mono"><b>'+f1(e.s/e.n*20)+'/20</b></td></tr>').join("")+'</tbody></table></div>':'<p class="muted small">Aucun examen blanc pour le moment.</p>';
+  return '<div class="stack">'+
+  '<div class="card hero">'+ringSvg(pct(all.solid,all.total))+
+  '<div class="stack" style="gap:10px;flex:1;min-width:220px"><h2>Tableau de bord</h2><p class="muted">'+Q.length+' questions corrigées, des calculs générés à l’infini et '+FC.length+' cartes mémoire. Une réponse juste deux fois de suite rend une question « solide ».</p>'+
+  '<div class="row"><button class="btn pri" data-a="goprac" data-c="daily">Session du jour'+(due?' ('+due+' à revoir)':'')+'</button><a class="btn" href="#examen">Examen blanc</a><a class="btn" href="#cartes">Cartes</a></div></div></div>'+
+  '<div class="kpis"><div class="kpi"><b>'+all.seen+'/'+all.total+'</b><span>questions vues</span></div>'+
+  '<div class="kpi"><b>'+due+'</b><span>à réviser aujourd’hui</span></div>'+
+  '<div class="kpi"><b>'+st+'</b><span>jour'+(st>1?"s":"")+' d’affilée · '+today+' rép. aujourd’hui</span></div>'+
+  '<div class="kpi"><b>'+(DB.ex.length?f1(best):"—")+'</b><span>meilleur examen /20</span></div></div>'+
+  '<div class="card stack"><div class="row between"><h3>Points faibles par thème</h3>'+(worst?'<button class="btn sm" data-a="gotheme" data-k="'+worst.key+'">Travailler le plus faible</button>':'')+'</div>'+themes+
+  (DB.calc.n?'<p class="small muted">Calculs générés : '+DB.calc.c+'/'+DB.calc.n+' justes ('+pct(DB.calc.c,DB.calc.n)+' %).</p>':'')+'</div>'+
+  '<div class="card stack"><h3>Évolution aux examens blancs</h3>'+trendSvg()+hist+'</div>'+
+  '<div class="stack" style="gap:10px"><h3>Progression par séance</h3><div class="grid">'+cards+'</div></div>'+
+  '<div class="card stack"><h3>Plan conseillé</h3><ol class="steps"><li><b>J-7 à J-3</b> : fiche puis QCM de chaque séance, puis la session du jour chaque matin (10 min).</li><li><b>J-3 à J-1</b> : examens blancs chronométrés, au moins un par jour, jusqu’à 18/20 deux fois de suite. Entraîne-toi aux calculs générés.</li><li><b>La veille</b> : cartes mémoire, tes erreurs, puis la fiche « Flash final ».</li></ol></div></div>';
+}
+function fmt1(n){return Number.isInteger(n)?String(n):n.toFixed(2).replace(/0$/,"").replace(".",",")}
+function f1(n){return n.toFixed(1).replace(".",",")}
+
+function vFiches(){
+  const tabs=[1,2,3,4].map(c=>'<button class="chip" data-a="ftab" data-c="'+c+'" aria-pressed="'+(ficheTab===c)+'">'+CH[c]+'</button>').join("")+'<button class="chip" data-a="ftab" data-c="5" aria-pressed="'+(ficheTab===5)+'">Flash final</button>';
+  let body;
+  if(ficheTab===5){
+    const traps=[1,2,3,4].map(c=>'<div class="trap"><h3>'+CH[c]+'</h3><ul>'+FICHES[c].trap.map(x=>'<li>'+x+'</li>').join("")+'</ul></div>').join("");
+    body='<p class="muted">La page à relire la veille : formules, cibles, mécanismes, chiffres et pièges.</p><div class="card stack"><h3>Formules</h3><div class="tw"><table><thead><tr><th>Indicateur</th><th>Formule</th><th>Exemple du cours</th></tr></thead><tbody>'+MEMO_ROWS.map(r=>'<tr><td><b>'+r[0]+'</b></td><td class="mono">'+r[1]+'</td><td class="mono">'+r[2]+'</td></tr>').join("")+'</tbody></table></div></div>'+
+    '<div class="card stack"><h3>Cibles de l’étude de cas</h3>'+cibleTable()+'</div>'+
+    '<div class="card stack"><h3>Mécanismes de collecte</h3>'+mechTable()+'</div>'+
+    '<div class="card stack"><h3>Chiffres de la démo GA4</h3><div class="tw"><table><thead><tr><th>Canal</th><th>Sessions</th><th>Part</th><th>Engagement</th></tr></thead><tbody><tr><td>Direct</td><td class="mono">71 051</td><td class="mono">51,47 %</td><td class="mono">27,89 %</td></tr><tr><td>Organic Search</td><td class="mono">29 900</td><td class="mono">21,66 %</td><td class="mono">71,98 %</td></tr><tr><td>Paid Search</td><td class="mono">22 700</td><td class="mono">16,44 %</td><td class="mono">52,00 %</td></tr><tr><td>Referral</td><td class="mono">3 463</td><td class="mono">—</td><td class="mono">73,52 %</td></tr></tbody></table></div><p class="small muted">Pages : « / » 102 233 vues (8 s) • /checkout 15 493 vues (1 min 51 s). purchase : 1 395 événements pour 1 267 utilisateurs.</p></div>'+
+    '<div class="stack" style="gap:10px"><h3>Les pièges des quatre séances</h3>'+traps+'</div>';
+  }else{
+    const f=FICHES[ficheTab];
+    body=visual(ficheTab)+f.secs.map(s=>'<div class="card sec"><h3>'+s.h+'</h3><ul>'+s.l.map(x=>'<li>'+x+'</li>').join("")+'</ul></div>').join("")+
+    '<div class="trap"><h3>Pièges classiques au QCM</h3><ul>'+f.trap.map(x=>'<li>'+x+'</li>').join("")+'</ul></div>'+
+    '<div class="row"><button class="btn pri" data-a="goprac" data-c="'+ficheTab+'">QCM de cette séance</button><button class="btn" data-a="gocards" data-c="'+ficheTab+'">Cartes de cette séance</button></div>';
+  }
+  return '<div class="stack"><h2>Fiches de révision</h2><div class="chips">'+tabs+'</div>'+body+'</div>';
+}
+
+/* ----- Cartes mémoire ----- */
+function fcDue(c){const now=Date.now();const r=[];FC.forEach((x,i)=>{if(c!=="all"&&x[0]!==+c)return;const s=DB.fc[i];if(!s||(s.d||0)<=now)r.push(i)});return r}
+function vCards(){
+  if(FS&&FS.i<FS.deck.length){
+    const i=FS.deck[FS.i],c=FC[i];
+    return '<div class="stack"><div class="qhead"><span class="tag">'+CH[c[0]]+'</span><span class="mono small muted">'+(FS.i+1)+' / '+FS.deck.length+'</span></div><div class="bar"><i class="a" style="width:'+Math.round(FS.i/FS.deck.length*100)+'%"></i></div>'+
+    '<button class="fcard'+(FS.flip?" back":"")+'" data-a="fflip" aria-live="polite">'+(FS.flip?'<span class="eyebrow">Réponse</span><span class="a">'+c[2]+'</span>':'<span class="eyebrow">Question</span><span class="q">'+c[1]+'</span><span class="hint">Touche pour retourner la carte</span>')+'</button>'+
+    (FS.flip?'<div class="row"><button class="btn danger" data-a="fgrade" data-v="0">À revoir</button><button class="btn pri" data-a="fgrade" data-v="1">Je savais</button></div>':'')+
+    '<div class="hint">Clavier : <kbd>Espace</kbd> retourner · <kbd>1</kbd> à revoir · <kbd>2</kbd> je savais</div><div><button class="btn" data-a="fquit">Quitter</button></div></div>';
+  }
+  if(FS){return '<div class="stack"><h2>Série terminée</h2><div class="card stack"><p>'+FS.ok+' cartes sues sur '+FS.deck.length+'. Les cartes « à revoir » reviennent dès la prochaine série.</p><div class="row"><button class="btn pri" data-a="fagain">Nouvelle série</button><a class="btn" href="#entrainement">QCM</a></div></div></div>'}
+  const chips=[["all","Toutes"],["1","Séance 1"],["2","Séance 2"],["3","Séance 3"],["4","Séance 4"]].map(x=>'<button class="chip" data-a="fcch" data-v="'+x[0]+'" aria-pressed="'+(fcCh===x[0])+'">'+x[1]+' ('+fcDue(x[0]).length+')</button>').join("");
+  return '<div class="stack"><h2>Cartes mémoire</h2><p class="muted">'+FC.length+' cartes : formules, définitions et chiffres clés. Une carte sue revient plus tard (1, 2, 4, 8 puis 16 jours). Le nombre entre parenthèses est celui des cartes à travailler.</p><div class="card stack"><div class="chips">'+chips+'</div><div class="row"><button class="btn pri" data-a="fstart">Commencer</button></div></div></div>';
+}
+
+/* ----- Entraînement ----- */
+function chipsCh(){
+  const e=idsOf(0).filter(i=>DB.q[i]&&DB.q[i].l===0).length,d=dueIds().length;
+  const o=[["daily","Session du jour ("+d+")"],["all","Tout"],["1","Séance 1"],["2","Séance 2"],["3","Séance 3"],["4","Séance 4"],["err","Mes erreurs ("+e+")"],["calc","Calculs générés"]];
+  if(pSetCh.slice(0,2)==="t:"){const t=themeStats().filter(x=>x.key===pSetCh.slice(2))[0];o.push([pSetCh,"Thème : "+(t?t.label:"")])}
+  return o.map(x=>'<button class="chip" data-a="psetch" data-v="'+x[0]+'" aria-pressed="'+(pSetCh===x[0])+'">'+x[1]+'</button>').join("");
+}
+function vPracSetup(){
+  const ns=[[10,"10 questions"],[20,"20 questions"],["all","Toutes"]];
+  return '<div class="stack"><h2>Entraînement</h2><p class="muted">Correction immédiate après chaque réponse. La session du jour mélange tes questions dues (ratées ou à consolider) et des questions neuves. Les calculs générés changent à chaque fois.</p>'+
+  '<div class="card stack"><div class="stack" style="gap:8px"><span class="eyebrow">Source</span><div class="chips">'+chipsCh()+'</div></div>'+
+  '<div class="stack" style="gap:8px"><span class="eyebrow">Nombre</span><div class="chips">'+ns.map(x=>'<button class="chip" data-a="psetn" data-v="'+x[0]+'" aria-pressed="'+(String(pSetN)===String(x[0]))+'">'+x[1]+'</button>').join("")+'</div></div>'+
+  '<div class="row"><button class="btn pri" data-a="pstart">Commencer</button></div>'+(P===false?'<p class="small muted">Aucune question dans cette sélection pour le moment.</p>':'')+'</div></div>';
+}
+function pickIds(ch,n){
+  const now=Date.now();let ids=idsOf(0);
+  if(ch==="daily"){const due=shuffle(ids.filter(i=>DB.q[i]&&(DB.q[i].d||0)<=now)).sort((a,b)=>(DB.q[a].l-DB.q[b].l));const nw=shuffle(ids.filter(i=>!DB.q[i]));return shuffle(due.concat(nw).slice(0,n==="all"?30:+n))}
+  if(ch==="err")ids=ids.filter(i=>DB.q[i]&&DB.q[i].l===0);
+  else if(ch.slice(0,2)==="t:")ids=ids.filter(i=>Q[i].tk===ch.slice(2));
+  else if(ch!=="all")ids=ids.filter(i=>Q[i].ch===+ch);
+  const pr=i=>!DB.q[i]?1:(DB.q[i].l===0?0:2);
+  ids=shuffle(ids).sort((a,b)=>pr(a)-pr(b));
+  return shuffle(ids.slice(0,n==="all"?ids.length:+n));
+}
+function optsHtml(it,reveal,sel,act){
+  return it.ord.map((oi,pos)=>{
+    let c="opt";
+    if(reveal){if(oi===0)c+=" ok";else if(it.pick===pos)c+=" ko"}
+    else if(sel===pos)c+=" sel";
+    return '<button class="'+c+'" data-a="'+act+'" data-p="'+pos+'"'+(reveal?" disabled":"")+'><span class="l">'+LET[pos]+'</span><span>'+it.q.o[oi]+'</span></button>'}).join("");
+}
+function vPractice(){
+  if(!P)return vPracSetup();
+  if(P===false){return vPracSetup()}
+  if(P.i>=P.items.length)return vPracEnd();
+  const it=P.items[P.i],qq=it.q,done=it.pick!==null,ok=done&&it.ord[it.pick]===0;
+  return '<div class="stack"><div class="qhead"><span class="row" style="gap:6px"><span class="tag">'+CH[qq.ch]+'</span>'+(qq.gen?'<span class="tag gen">Calcul généré</span>':'')+'</span><span class="mono small muted">'+(P.i+1)+' / '+P.items.length+' · '+P.score+' juste'+(P.score>1?"s":"")+'</span></div>'+
+  '<div class="bar"><i class="a" style="width:'+Math.round(P.i/P.items.length*100)+'%"></i></div>'+
+  '<div class="qtext">'+qq.t+'</div><div class="opts">'+optsHtml(it,done,null,"ppick")+'</div>'+
+  (done?'<div class="expl '+(ok?"good":"bad")+'"><b>'+(ok?"Correct. ":"Incorrect. ")+'</b>'+qq.e+'</div><div class="row"><button class="btn pri" data-a="pnext">'+(P.i+1>=P.items.length?"Voir le bilan":"Question suivante")+'</button></div>':'<div class="hint">Clavier : <kbd>A</kbd> <kbd>B</kbd> <kbd>C</kbd> <kbd>D</kbd> ou <kbd>1</kbd> à <kbd>4</kbd> pour répondre, <kbd>Entrée</kbd> pour continuer.</div>')+
+  '<div><button class="btn" data-a="pquit">Quitter</button></div></div>';
+}
+function vPracEnd(){
+  const n=P.items.length,wrong=P.items.filter(it=>it.ord[it.pick]!==0);
+  return '<div class="stack"><h2>Bilan</h2><div class="card stack"><div class="score">'+P.score+'/'+n+'</div><p class="muted">'+(P.score===n?"Sans faute.":wrong.length+" question"+(wrong.length>1?"s":"")+" à revoir. Elles reviendront en priorité.")+'</p><div class="row"><button class="btn pri" data-a="pagain">Nouvelle série</button><a class="btn" href="#erreurs">Mes erreurs</a></div></div>'+
+  (wrong.length?'<h3>À retenir</h3>'+wrong.map(it=>'<div class="card stack" style="gap:6px"><span class="tag" style="align-self:flex-start">'+thLabel(it.q)+'</span><b>'+it.q.t+'</b><div class="expl good"><b>Réponse : </b>'+it.q.o[0]+'<br><span class="muted">'+it.q.e+'</span></div></div>').join(""):'')+'</div>';
+}
+
+/* ----- Examen ----- */
+function vExamSetup(){
+  const opts=[10,20,40];
+  const sw=(a,on,l)=>'<button class="chip" data-a="'+a+'" aria-pressed="'+on+'">'+l+'</button>';
+  return '<div class="stack"><h2>Examen blanc</h2><p class="muted">Conditions réelles : questions mélangées entre les 4 séances, chronomètre, aucune correction avant la fin. Tu peux changer ta réponse et marquer une question à revoir.</p>'+
+  '<div class="card stack"><div class="stack" style="gap:8px"><span class="eyebrow">Format</span><div class="chips">'+opts.map(o=>'<button class="chip" data-a="xsetn" data-v="'+o+'" aria-pressed="'+(xSetN===o)+'">'+o+' questions · '+o+' min</button>').join("")+'</div></div>'+
+  '<div class="stack" style="gap:8px"><span class="eyebrow">Options</span><div class="chips">'+sw("xgen",xGen,"Inclure des calculs générés (≈ 20 %)")+sw("xpen",xPen,"Pénalité : −¼ point par erreur")+'</div><p class="small muted">Active la pénalité seulement si ton examen en applique une. Une question sans réponse ne retire rien.</p></div>'+
+  '<div class="row"><button class="btn pri" data-a="xstart">Lancer l’examen</button></div></div>'+
+  (DB.ex.length?'<p class="small muted">Dernier résultat : <b class="mono">'+f1(DB.ex[DB.ex.length-1].s/DB.ex[DB.ex.length-1].n*20)+'/20</b> le '+fmtDate(DB.ex[DB.ex.length-1].t)+'.</p>':'')+'</div>';
+}
+function startExam(){
+  const nGen=xGen?Math.round(xSetN*0.2):0,nBank=xSetN-nGen;
+  const lists=[1,2,3,4].map(c=>shuffle(idsOf(c)));const ids=[];let k=0;
+  while(ids.length<nBank&&lists.some(l=>l.length)){const l=lists[k%4];if(l.length)ids.push(l.pop());k++}
+  const items=ids.map(mkItem);for(let i=0;i<nGen;i++)items.push(mkItem(genQ()));
+  X={items:shuffle(items),ans:[],flags:{},i:0,end:Date.now()+xSetN*60000,min:xSetN,done:false,confirm:false,rf:"wrong",pen:xPen};
+  X.items.forEach((_,i)=>{X.ans[i]=null});
+}
+function vExam(){
+  if(!X)return vExamSetup();
+  if(!X.done&&Date.now()>X.end)finishExam();
+  if(X.done)return vExamResult();
+  const it=X.items[X.i],qq=it.q,n=X.items.length;
+  const answered=X.ans.filter(a=>a!==null).length;
+  const grid=X.items.map((_,i)=>'<button class="qn'+(i===X.i?" cur":X.ans[i]!==null?" done":"")+(X.flags[i]?" flag":"")+'" data-a="xgo" data-i="'+i+'" aria-label="Question '+(i+1)+'">'+(i+1)+'</button>').join("");
+  const un=n-answered;
+  return '<div class="stack"><div class="xbar"><div class="qhead"><span class="timer" id="timer">'+fmtT((X.end-Date.now())/1000)+'</span><span class="small muted mono">'+answered+'/'+n+' répondues</span></div><div class="qnav">'+grid+'</div></div>'+
+  '<div class="qhead"><span class="mono small muted">Question '+(X.i+1)+' / '+n+'</span><button class="btn sm" data-a="xflag" aria-pressed="'+(!!X.flags[X.i])+'">'+(X.flags[X.i]?"Retirer le marquage":"Marquer à revoir")+'</button></div>'+
+  '<div class="qtext">'+qq.t+'</div><div class="opts">'+optsHtml(it,null,X.ans[X.i],"xpick")+'</div>'+
+  '<div class="row"><button class="btn" data-a="xprev"'+(X.i===0?" disabled":"")+'>Précédente</button><button class="btn" data-a="xnext"'+(X.i===n-1?" disabled":"")+'>Suivante</button><button class="btn pri" data-a="xfin">Terminer</button></div>'+
+  '<div class="hint"><kbd>A</kbd>–<kbd>D</kbd> répondre · <kbd>←</kbd> <kbd>→</kbd> naviguer · <kbd>F</kbd> marquer</div>'+
+  (X.confirm?'<div class="banner stack" style="gap:8px"><span>'+(un?"Il reste <b>"+un+"</b> question"+(un>1?"s":"")+" sans réponse. ":"")+'Terminer l’examen maintenant ?</span><div class="row"><button class="btn pri" data-a="xyes">Oui, terminer</button><button class="btn" data-a="xno">Continuer</button></div></div>':'')+'</div>';
+}
+function finishExam(){
+  if(X.done)return;
+  X.done=true;let ok=0,wr=0;X.per={1:{n:0,s:0},2:{n:0,s:0},3:{n:0,s:0},4:{n:0,s:0}};X.th={};
+  X.items.forEach((it,i)=>{const a=X.ans[i],good=a!==null&&it.ord[a]===0;it.pick=a;it.ok=good;if(good)ok++;else if(a!==null)wr++;const c=it.q.ch;X.per[c].n++;if(good)X.per[c].s++;else{const l=thLabel(it.q);X.th[l]=(X.th[l]||0)+1}recAny(it,good)});
+  X.raw=ok;X.wr=wr;X.score=X.pen?Math.max(0,ok-wr/4):ok;
+  DB.ex.push({t:Date.now(),s:X.score,n:X.items.length,m:X.min,pen:X.pen?1:0});save();
+}
+function vExamResult(){
+  const n=X.items.length,note=X.score/n*20;
+  const verdict=note>=18?"Niveau visé atteint. Refais un examen pour confirmer.":note>=15?"Solide. Reprends tes erreurs pour passer au-dessus de 18.":"À consolider : relis les fiches des séances faibles puis refais les QCM.";
+  const per=[1,2,3,4].filter(c=>X.per[c].n).map(c=>'<div class="stack" style="gap:4px"><div class="row between"><span>'+CHS[c]+'</span><span class="mono small">'+X.per[c].s+'/'+X.per[c].n+'</span></div><div class="bar"><i class="g" style="width:'+pct(X.per[c].s,X.per[c].n)+'%"></i><i class="r" style="width:'+(100-pct(X.per[c].s,X.per[c].n))+'%"></i></div></div>').join("");
+  const ths=Object.keys(X.th).sort((a,b)=>X.th[b]-X.th[a]).slice(0,5);
+  const list=X.items.map((it,i)=>({it:it,i:i})).filter(x=>X.rf==="all"||!x.it.ok);
+  const rv=list.map(x=>{const it=x.it,qq=it.q;
+    const mine=it.pick===null?"Sans réponse":qq.o[it.ord[it.pick]];
+    return '<details class="rv"><summary><span class="dot '+(it.ok?"g":it.pick===null?"n":"r")+'"></span><span><b class="mono">'+(x.i+1)+'.</b> '+qq.t+'</span></summary><div class="body">'+
+    (it.ok?'':'<div class="expl bad"><b>Ta réponse : </b>'+mine+'</div>')+'<div class="expl good"><b>Bonne réponse : </b>'+qq.o[0]+'</div><p class="muted small">'+qq.e+'</p></div></details>'}).join("");
+  const unans=X.ans.filter(a=>a===null).length;
+  return '<div class="stack"><h2>Résultat</h2><div class="card stack"><div class="row" style="align-items:flex-end;gap:18px"><div class="score">'+f1(note)+'<span class="muted" style="font-size:1.2rem"> /20</span></div><div class="mono muted">'+X.raw+' bonnes réponses sur '+n+(X.pen?' · '+X.wr+' erreur'+(X.wr>1?"s":"")+' (−¼)':'')+'</div></div><p>'+verdict+'</p>'+(unans?'<p class="small muted">'+unans+' question'+(unans>1?"s":"")+' sans réponse comptent comme fausses'+(X.pen?' (sans pénalité)':'')+'.</p>':'')+
+  '<div class="row"><button class="btn pri" data-a="xagain">Nouvel examen</button><button class="btn" data-a="goerr">Réviser mes erreurs</button></div></div>'+
+  '<div class="grid"><div class="card stack"><h3>Par séance</h3>'+per+'</div>'+(ths.length?'<div class="card stack"><h3>Thèmes à retravailler</h3><ul style="margin:0;padding-left:1.1em">'+ths.map(t=>'<li>'+t+' <span class="muted mono">('+X.th[t]+' erreur'+(X.th[t]>1?"s":"")+')</span></li>').join("")+'</ul></div>':'')+'</div>'+
+  '<div class="row between"><h3>Correction</h3><div class="chips"><button class="chip" data-a="xrf" data-v="wrong" aria-pressed="'+(X.rf==="wrong")+'">Erreurs</button><button class="chip" data-a="xrf" data-v="all" aria-pressed="'+(X.rf==="all")+'">Toutes</button></div></div>'+
+  (rv||'<div class="empty">Aucune erreur. Beau score.</div>')+'</div>';
+}
+
+/* ----- Erreurs ----- */
+function vErrors(){
+  const ids=idsOf(0).filter(i=>DB.q[i]&&DB.q[i].l===0);
+  if(!ids.length)return '<div class="stack"><h2>Mes erreurs</h2><div class="card empty">'+(Object.keys(DB.q).length?"Aucune erreur en attente. Continue avec un examen blanc.":"Tes erreurs apparaîtront ici après tes premières réponses.")+'</div></div>';
+  const by={1:[],2:[],3:[],4:[]};ids.forEach(i=>by[Q[i].ch].push(i));
+  return '<div class="stack"><div class="qhead"><h2>Mes erreurs <span class="muted mono" style="font-weight:500">('+ids.length+')</span></h2><button class="btn pri" data-a="goerr">Réviser ces erreurs</button></div>'+
+  [1,2,3,4].filter(c=>by[c].length).map(c=>'<div class="stack" style="gap:8px"><div class="eyebrow">'+CH[c]+'</div>'+by[c].map(i=>'<details class="rv"><summary><span class="dot r"></span><span>'+Q[i].t+' <span class="muted small">· '+Q[i].th+' · '+DB.q[i].c+'/'+DB.q[i].n+'</span></span></summary><div class="body"><div class="expl good"><b>Bonne réponse : </b>'+Q[i].o[0]+'</div><p class="muted small">'+Q[i].e+'</p></div></details>').join("")+'</div>').join("")+'</div>';
+}
+
+/* ----- Réglages ----- */
+function vSettings(){
+  return '<div class="stack"><h2>Réglages</h2>'+
+  '<div class="card stack"><h3>Apparence</h3><div class="chips"><button class="chip" data-a="theme" data-v="auto">Automatique</button><button class="chip" data-a="theme" data-v="light">Clair</button><button class="chip" data-a="theme" data-v="dark">Sombre</button></div></div>'+
+  '<div class="card stack"><h3>Sauvegarde de la progression</h3><p class="muted small">Ta progression reste dans ce navigateur. Copie ce texte pour la garder ou la reprendre sur un autre appareil.</p><textarea id="exp" readonly aria-label="Sauvegarde exportée"></textarea><div class="row"><button class="btn" data-a="copyexp">Copier</button><span id="cpmsg" class="small muted"></span></div>'+
+  '<textarea id="imp" placeholder="Colle ici une sauvegarde à importer" aria-label="Sauvegarde à importer"></textarea><div class="row"><button class="btn" data-a="doimp">Importer</button><span id="impmsg" class="small muted"></span></div></div>'+
+  '<div class="card stack"><h3>Raccourcis clavier</h3><ul class="small" style="margin:0;padding-left:1.1em;display:flex;flex-direction:column;gap:3px"><li>Entraînement : <kbd>A</kbd>–<kbd>D</kbd> ou <kbd>1</kbd>–<kbd>4</kbd> répondre, <kbd>Entrée</kbd> question suivante.</li><li>Examen : <kbd>A</kbd>–<kbd>D</kbd> répondre, <kbd>←</kbd> <kbd>→</kbd> naviguer, <kbd>F</kbd> marquer.</li><li>Cartes : <kbd>Espace</kbd> retourner, <kbd>1</kbd> à revoir, <kbd>2</kbd> je savais.</li></ul></div>'+
+  '<div class="card stack"><h3>Remettre à zéro</h3><p class="muted small">Efface les réponses, les examens et les cartes de ce navigateur.</p>'+(resetAsk?'<div class="row"><button class="btn danger" data-a="resetyes">Oui, tout effacer</button><button class="btn" data-a="resetno">Annuler</button></div>':'<div><button class="btn danger" data-a="resetask">Effacer ma progression</button></div>')+'</div></div>';
+}
+let resetAsk=false;
+function afterRender(r){
+  if(r==="reglages"){const e=document.getElementById("exp");if(e)e.value=JSON.stringify(DB)}
+}
+
+/* ---------- Routeur ---------- */
+const ROUTES={accueil:vHome,fiches:vFiches,cartes:vCards,entrainement:vPractice,examen:vExam,erreurs:vErrors,reglages:vSettings};
+function route(){return (location.hash||"#accueil").slice(1)}
+function render(){
+  clearInterval(timerId);timerId=null;
+  let r=route();if(!ROUTES[r])r="accueil";
+  document.querySelectorAll("#nav a").forEach(a=>{const on=a.dataset.r===r;a.classList.toggle("on",on);if(on)a.setAttribute("aria-current","page");else a.removeAttribute("aria-current")});
+  view.innerHTML=ROUTES[r]();
+  afterRender(r);
+  if(r==="examen"&&X&&!X.done){timerId=setInterval(tick,500)}
+  window.scrollTo(0,0);
+}
+function rerender(keep){const y=window.scrollY;render();if(keep)window.scrollTo(0,y)}
+function tick(){
+  if(!X||X.done){clearInterval(timerId);return}
+  const left=(X.end-Date.now())/1000,t=document.getElementById("timer");
+  if(left<=0){finishExam();render();return}
+  if(t){t.textContent=fmtT(left);t.classList.toggle("low",left<60)}
+}
+function go(h){if(location.hash==="#"+h)render();else location.hash=h}
+
+/* ---------- Thème ---------- */
+function applyTheme(v){try{localStorage.setItem("wa_theme",v)}catch(e){}const el=document.documentElement;if(v==="light"||v==="dark")el.setAttribute("data-theme",v);else el.removeAttribute("data-theme")}
+function curDark(){const t=document.documentElement.getAttribute("data-theme");if(t)return t==="dark";return window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches}
+try{const t=localStorage.getItem("wa_theme");if(t&&t!=="auto")applyTheme(t)}catch(e){}
+function setThemeBtn(){const b=document.getElementById("themeBtn");if(b)b.textContent=curDark()?"Mode clair":"Mode sombre"}
+setThemeBtn();
+document.getElementById("themeBtn").addEventListener("click",function(){applyTheme(curDark()?"light":"dark");setThemeBtn()});
+
+/* ---------- Actions ---------- */
+const A={
+  gofiche:d=>{ficheTab=+d.c;go("fiches")},
+  ftab:d=>{ficheTab=+d.c;rerender(false)},
+  gocards:d=>{fcCh=String(d.c);FS=null;go("cartes")},
+  goprac:d=>{pSetCh=String(d.c);P=null;go("entrainement")},
+  gotheme:d=>{pSetCh="t:"+d.k;P=null;go("entrainement")},
+  psetch:d=>{pSetCh=d.v;rerender(true)},
+  psetn:d=>{pSetN=d.v==="all"?"all":+d.v;rerender(true)},
+  pstart:()=>{
+    let items;
+    if(pSetCh==="calc"){const n=pSetN==="all"?20:+pSetN;items=[];for(let i=0;i<n;i++)items.push(mkItem(genQ()))}
+    else{const ids=pickIds(pSetCh,pSetN);if(!ids.length){P=false;rerender(false);return}items=ids.map(mkItem)}
+    P={items:items,i:0,score:0};rerender(false)},
+  ppick:d=>{const it=P.items[P.i];if(it.pick!==null)return;it.pick=+d.p;const ok=it.ord[it.pick]===0;recAny(it,ok);if(ok)P.score++;save();rerender(true)},
+  pnext:()=>{P.i++;rerender(false)},
+  pquit:()=>{P=null;rerender(false)},
+  pagain:()=>{P=null;rerender(false)},
+  goerr:()=>{pSetCh="err";P=null;go("entrainement")},
+  xsetn:d=>{xSetN=+d.v;rerender(true)},
+  xgen:()=>{xGen=!xGen;rerender(true)},
+  xpen:()=>{xPen=!xPen;rerender(true)},
+  xstart:()=>{startExam();rerender(false)},
+  xpick:d=>{if(X.done)return;X.ans[X.i]=+d.p;X.confirm=false;rerender(true)},
+  xgo:d=>{X.i=+d.i;rerender(false)},
+  xprev:()=>{if(X.i>0){X.i--;rerender(false)}},
+  xnext:()=>{if(X.i<X.items.length-1){X.i++;rerender(false)}},
+  xflag:()=>{X.flags[X.i]=!X.flags[X.i];rerender(true)},
+  xfin:()=>{X.confirm=true;rerender(true)},
+  xno:()=>{X.confirm=false;rerender(true)},
+  xyes:()=>{finishExam();rerender(false)},
+  xagain:()=>{X=null;rerender(false)},
+  xrf:d=>{X.rf=d.v;rerender(true)},
+  fcch:d=>{fcCh=d.v;rerender(true)},
+  fstart:()=>{const deck=shuffle(fcDue(fcCh)).slice(0,25);if(!deck.length){FS={deck:[],i:0,ok:0,flip:false};rerender(false);return}FS={deck:deck,i:0,ok:0,flip:false};rerender(false)},
+  fflip:()=>{FS.flip=!FS.flip;rerender(true)},
+  fgrade:d=>{const i=FS.deck[FS.i],s=DB.fc[i]||{b:0,d:0};if(+d.v){s.b=Math.min((s.b||0)+1,5);s.d=Date.now()+BOX[s.b]*DAY;FS.ok++}else{s.b=0;s.d=0}DB.fc[i]=s;touch();save();FS.i++;FS.flip=false;rerender(false)},
+  fquit:()=>{FS=null;rerender(false)},
+  fagain:()=>{FS=null;rerender(false)},
+  theme:d=>{applyTheme(d.v);setThemeBtn()},
+  copyexp:()=>{const e=document.getElementById("exp"),m=document.getElementById("cpmsg");const txt=e.value;
+    const fallback=()=>{e.select();if(m)m.textContent="Sélectionné : copie avec Ctrl+C."};
+    try{navigator.clipboard.writeText(txt).then(()=>{if(m)m.textContent="Copié."},fallback)}catch(x){fallback()}},
+  doimp:()=>{const t=document.getElementById("imp").value.trim(),m=document.getElementById("impmsg");
+    try{const o=JSON.parse(t);if(!o||typeof o!=="object"||typeof o.q!=="object")throw 0;
+      const n={q:{},ex:[],fc:{},calc:{n:0,c:0},days:{}};
+      Object.keys(o.q).forEach(k=>{const r=o.q[k];if(+k>=0&&+k<Q.length&&r)n.q[k]={n:+r.n||0,c:+r.c||0,l:r.l?1:0,b:Math.max(0,Math.min(5,+r.b||0)),d:+r.d||0}});
+      (o.ex||[]).forEach(e=>{if(e&&+e.n>0)n.ex.push({t:+e.t||0,s:+e.s||0,n:+e.n,m:+e.m||0,pen:e.pen?1:0})});
+      Object.keys(o.fc||{}).forEach(k=>{const r=o.fc[k];if(+k>=0&&+k<FC.length&&r)n.fc[k]={b:+r.b||0,d:+r.d||0}});
+      if(o.calc)n.calc={n:+o.calc.n||0,c:+o.calc.c||0};
+      Object.keys(o.days||{}).forEach(k=>{if(/^\d{4}-\d{2}-\d{2}$/.test(k))n.days[k]=+o.days[k]||0});
+      DB=n;save();rerender(false);const mm=document.getElementById("impmsg");if(mm)mm.textContent="Importé."}
+    catch(x){if(m)m.textContent="Texte non reconnu : colle une sauvegarde complète."}},
+  resetask:()=>{resetAsk=true;rerender(true)},
+  resetno:()=>{resetAsk=false;rerender(true)},
+  resetyes:()=>{DB={q:{},ex:[],fc:{},calc:{n:0,c:0},days:{}};save();P=null;X=null;FS=null;resetAsk=false;rerender(false)}
+};
+document.addEventListener("click",function(e){
+  const t=e.target.closest("[data-a]");if(!t)return;
+  const f=A[t.dataset.a];if(f)f(t.dataset);
+});
+document.addEventListener("keydown",function(e){
+  if(e.ctrlKey||e.metaKey||e.altKey)return;
+  const t=e.target,tn=t&&t.tagName;if(tn==="TEXTAREA"||tn==="INPUT")return;
+  const k=e.key.toLowerCase(),r=route();
+  if((tn==="BUTTON"||tn==="A")&&(k==="enter"||k===" "))return;
+  const idx={"1":0,"2":1,"3":2,"4":3,a:0,b:1,c:2,d:3}[k];
+  if(r==="entrainement"&&P&&P.items&&P.i<P.items.length){
+    const it=P.items[P.i];
+    if(it.pick===null){if(idx!==undefined){A.ppick({p:idx});e.preventDefault()}}
+    else if(k==="enter"||k==="arrowright"||k===" "){A.pnext();e.preventDefault()}
+  }else if(r==="examen"&&X&&!X.done){
+    if(idx!==undefined){A.xpick({p:idx});e.preventDefault()}
+    else if(k==="arrowright")A.xnext();else if(k==="arrowleft")A.xprev();else if(k==="f")A.xflag();
+  }else if(r==="cartes"&&FS&&FS.i<FS.deck.length){
+    if(k===" "||k==="enter"){A.fflip();e.preventDefault()}
+    else if(FS.flip&&k==="1")A.fgrade({v:0});else if(FS.flip&&k==="2")A.fgrade({v:1});
+  }
+});
+window.addEventListener("hashchange",render);
+render();
+})();
+</script>
